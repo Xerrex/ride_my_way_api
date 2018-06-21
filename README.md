@@ -1,2 +1,11 @@
-# ride_my_way_api
-Create a An API for the Ride my way application.
+# [ride_my_way_api]()
+
+## Introduction
+* An API for the Ride-my-way application.
+* Ride-my-way App is a carpooling application that provides drivers with the ability to    
+  create ride offers and passengers to join available ride offers.
+
+## Technologies used
+* **[Python3](https://www.python.org/downloads/)** - A programming language that lets you work more quickly (The universe loves speed!).
+* **[Flask](flask.pocoo.org/)** - A microframework for Python based on Werkzeug, Jinja 2 and good intentions
+* **[Virtualenv](https://virtualenv.pypa.io/en/stable/)** - A tool to create isolated virtual environments
