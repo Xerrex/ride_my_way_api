@@ -1,5 +1,8 @@
 # [ride_my_way_api]()
 
+![license](https://img.shields.io/github/license/mashape/apistatus.svg)
+
+
 ## Introduction
 * An API for the Ride-my-way application.
 * Ride-my-way App is a carpooling application that provides drivers with the ability to    
