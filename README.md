@@ -8,7 +8,33 @@
 * Ride-my-way App is a carpooling application that provides drivers with the ability to    
   create ride offers and passengers to join available ride offers.
 
-## Technologies used
+## Technologies used & needed.
 * **[Python3](https://www.python.org/downloads/)** - A programming language that lets you work more quickly (The universe loves speed!).
 * **[Flask](flask.pocoo.org/)** - A microframework for Python based on Werkzeug, Jinja 2 and good intentions
 * **[Virtualenv](https://virtualenv.pypa.io/en/stable/)** - A tool to create isolated virtual environments
+
+## Installation / Usage
+1. **Clone or download repo.**
+    ```
+    git clone https://github.com/Xerrex/ride_my_way_api.git
+    ```
+2. **Create virtual environment & Activate.**
+    ```
+    $ virtualenv -p python3.6 Venv 
+    $ source venv/bin/activate
+    ```
+3. **Install Dependancies.**
+    ```
+    (venv)$ pip install -r requirements.txt
+    ```
+4. **Enviroment variables.**
+
+    ```
+    (venv)$ touch .env
+    ```
+    * **Add the following lines to .env file**
+    ```
+    source venv/bin/activate
+    ```
+    * You can now run **source .env** to:
+      * activate virtual enviroment 
