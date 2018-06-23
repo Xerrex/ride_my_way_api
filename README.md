@@ -17,9 +17,14 @@
 * **[Virtualenv](https://virtualenv.pypa.io/en/stable/)** - A tool to create isolated virtual environments
 
 ## Installation / Usage
+
+**NB** 
+* Run the command after **$**:
+* **$** and anything before it, shows prompt status.
+
 1. **Clone or download repo.**
     ```
-    git clone https://github.com/Xerrex/ride_my_way_api.git
+    $ git clone https://github.com/Xerrex/ride_my_way_api.git
     ```
 2. **Create virtual environment & Activate.**
     ```
@@ -38,6 +43,17 @@
     * **Add the following lines to .env file**
     ```
     source venv/bin/activate
+    export export FLASK_APP="run.py"
+    export SECRET_KEY="[replace with phrase]"
+    export FLASK_ENV=development
     ```
     * You can now run **source .env** to:
-      * activate virtual enviroment 
+      * activate virtual enviroment
+      * export the FLASK_APP - enables flask run
+      * export the SECRET_KEY - Creates secret key
+      * export FLASK_ENV - enables the development environment
+
+5. **Run the app**
+   ```
+    (venv)$ flask run
+   ```
