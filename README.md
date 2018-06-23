@@ -3,6 +3,8 @@
 ![license](https://img.shields.io/github/license/mashape/apistatus.svg)
 [![Build Status](https://travis-ci.org/Xerrex/ride_my_way_api.svg?branch=develop)](https://travis-ci.org/Xerrex/ride_my_way_api)
 [![Coverage Status](https://coveralls.io/repos/github/Xerrex/ride_my_way_api/badge.svg?branch=develop)](https://coveralls.io/github/Xerrex/ride_my_way_api?branch=develop)
+[![Maintainability](https://api.codeclimate.com/v1/badges/2c6b807869eebb4c226b/maintainability)](https://codeclimate.com/github/Xerrex/ride_my_way_api/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/2c6b807869eebb4c226b/test_coverage)](https://codeclimate.com/github/Xerrex/ride_my_way_api/test_coverage)
 
 ## Introduction
 * An API for the Ride-my-way application.
