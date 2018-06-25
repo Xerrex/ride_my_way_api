@@ -30,13 +30,26 @@
 * `POST /api/v1/auth/register`: User Registration
    ```
    content_type="application/json"
+
    {
        "name": "alex dev",
-       "email: "alex@dev.com"
+       "email: "alex@dev.com",
        "password: "eleganttests11"
    }
    ```
 
+* `POST /api/v1/auth/login`: User Login
+    ```
+    content_type="application/json"
+
+    {
+        "email":"alex@dev.com",
+        "password": "eleganttests11"
+    }
+    ```
+
+* `POST /api/v1/auth/logout`: User Logout
+    
 
 ## Installation and usage
 
