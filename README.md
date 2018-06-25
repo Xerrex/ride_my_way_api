@@ -16,6 +16,20 @@
 * **[Flask](flask.pocoo.org/)** - A microframework for Python based on Werkzeug, Jinja 2 and good intentions
 * **[Virtualenv](https://virtualenv.pypa.io/en/stable/)** - A tool to create isolated virtual environments
 
+
+
+## Available endpoints 
+* `POST /api/v1/auth/register`: User Registration
+   ```
+   content_type="application/json"
+   {
+       "name": "alex dev",
+       "email: "alex@dev.com"
+       "password: "eleganttests11"
+   }
+   ```
+
+
 ## Installation / Usage
 
 **NB** 
