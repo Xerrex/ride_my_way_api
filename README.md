@@ -57,3 +57,7 @@
    ```
     (venv)$ flask run
    ```
+6. **Run Tests**
+  ```
+  (venv)$ pytest
+  ```
