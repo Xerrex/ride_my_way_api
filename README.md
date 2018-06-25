@@ -50,7 +50,19 @@
 
 * `POST /api/v1/auth/logout`: User Logout
     
+* `POST /api/v1/rides`: Creates a New ride offer
+    ```
+    content_type="application/json"
 
+    {
+        "starting_point": "Nairobi-Kencom",
+        "destination": "Taita-wunda",
+        "depart_time": "26-06-2018 21:00",
+        "eta": "27-06-2018 03:00",
+        "seats": 4,
+        "vehicle": "KCH 001"
+    }
+    ```
 ## Installation and usage
 
 **NB** 
