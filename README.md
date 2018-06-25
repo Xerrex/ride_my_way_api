@@ -16,40 +16,61 @@
 * **[Flask](flask.pocoo.org/)** - A microframework for Python based on Werkzeug, Jinja 2 and good intentions
 * **[Virtualenv](https://virtualenv.pypa.io/en/stable/)** - A tool to create isolated virtual environments
 
-
+## Table of contents
+* [Available endpoints](#available-endpoints)
+* [Installation and Usage](#installation-and-usage)
+  * [Get Repo](#clone-or-download-repo)
+  * [Virtual environment & activation](#create-virtual-environment-&-Activate)
+  * [Install Dependancies](#install-dependancies)
+  * [Enviroment variables](#enviroment-variables)
+  * [Run the app](#run-the-app)
+  * [Run tests](#run-tests)
 
 ## Available endpoints 
 * `POST /api/v1/auth/register`: User Registration
    ```
    content_type="application/json"
+
    {
        "name": "alex dev",
-       "email: "alex@dev.com"
+       "email: "alex@dev.com",
        "password: "eleganttests11"
    }
    ```
 
+* `POST /api/v1/auth/login`: User Login
+    ```
+    content_type="application/json"
 
-## Installation / Usage
+    {
+        "email":"alex@dev.com",
+        "password": "eleganttests11"
+    }
+    ```
+
+* `POST /api/v1/auth/logout`: User Logout
+    
+
+## Installation and usage
 
 **NB** 
 * Run the command after **$**:
 * **$** and anything before it, shows prompt status.
 
-1. **Clone or download repo.**
+1. #### **Clone or download repo.**
     ```
     $ git clone https://github.com/Xerrex/ride_my_way_api.git
     ```
-2. **Create virtual environment & Activate.**
+2. #### **Create virtual environment & Activate.**
     ```
     $ virtualenv -p python3.6 Venv 
     $ source venv/bin/activate
     ```
-3. **Install Dependancies.**
+3. #### **Install Dependancies.**
     ```
     (venv)$ pip install -r requirements.txt
     ```
-4. **Enviroment variables.**
+4. #### **Enviroment variables.**
 
     ```
     (venv)$ touch .env
@@ -67,11 +88,11 @@
       * export the SECRET_KEY - Creates secret key
       * export FLASK_ENV - enables the development environment
 
-5. **Run the app**
+5. #### **Run the app**
    ```
     (venv)$ flask run
    ```
-6. **Run Tests**
+6. #### **Run Tests**
   ```
   (venv)$ pytest
   ```
