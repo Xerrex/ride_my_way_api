@@ -4,6 +4,8 @@ import json
 from flask import url_for
 
 from app import create_app
+from app.data.user_data import USERS
+
 from . import TestBase
 
 
@@ -29,7 +31,7 @@ class AuthCase(TestBase):
 
     def tearDown(self):
         self.client.post('/api/v1/auth/logout', content_type='application/json')
-         #CLear USERS
+        USERS.clear()
 
         self.app = None
         self.client = None
@@ -48,7 +50,7 @@ class AuthCase(TestBase):
         self.assert201(response)
 
         response_data = json.loads(response.get_data(as_text=True))
-        self.assertIn('User was sucessfully Registered', response_data['message'])
+        self.assertIn("User Account Was Created Successfully.", response_data['message'])
     
     def test_user_log_in(self):
         """Test user login
@@ -118,7 +120,7 @@ class AuthCase(TestBase):
         self.assertEqual("Make sure to logout first", message)
 
     def test_non_registered_user_login(self):
-        """Test for a use that is not registered
+        """Test login for a user that is not registered
 
         Assert that a valid POST request to /api/v1/auth/login
         """
@@ -129,7 +131,7 @@ class AuthCase(TestBase):
         
         self.assert401(response)
 
-        expected_msg = 'Your email or password was invalid. Please register first'
+        expected_msg = "Your email or password is invalid.Please register first"
         msg = json.loads(response.get_data(as_text=True))['message']
         self.assertIn(expected_msg, msg)
 
@@ -153,7 +155,7 @@ class AuthCase(TestBase):
 
         message = json.loads(response.get_data(as_text=True))['message']
 
-        self.assertIn(self.test_user['name'], message)
+        self.assertEqual("User Session was successfully ended", message)
 
 
     def test_logout_for_logged_in_user(self):

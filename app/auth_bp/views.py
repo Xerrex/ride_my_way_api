@@ -36,6 +36,11 @@ class RegisterResource(Resource):
 
         create_user(name, email, password)
 
+        return{
+            "message":"User Account Was Created Successfully.",
+            "login_link":"/api/v1/auth/login"
+        }, 201
+
 
 class LoginResource(Resource):
     """Handles User Login 
@@ -57,11 +62,9 @@ class LoginResource(Resource):
 
         email = login_args['email']
 
-        abort_user_not_found(email)
-
         user = get_user_by_email(email)
 
-        if verify_password(user[1]['password'], login_args['password']):
+        if user and verify_password(user[1]['password'], login_args['password']):
             # login user
             if 'userID' not in session:
                 session['userID'] = user[0]
@@ -71,12 +74,13 @@ class LoginResource(Resource):
                 }, 200
 
             return {
-                       "message": "Make sure to logout first",
-                       "logout_link": "/api/v1/auth/logout"
-                   }, 409
+                "message": "Make sure to logout first",
+                "logout_link": "/api/v1/auth/logout"
+                }, 409
 
         return {
-                "message":"Your email or password is invalid.Please register first"
+            "message":"Your email or password is invalid.Please register first",
+            "login_link": "/api/v1/auth/register"
             }, 401    
 
 

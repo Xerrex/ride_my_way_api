@@ -1,6 +1,7 @@
 """Defines user Data Container & fetching methods 
 """
 from werkzeug.security import check_password_hash
+from flask_restful import abort
 from app.models import User
 
 
@@ -21,10 +22,7 @@ def create_user(name, email, password):
 
     USERS[user_id] = user.__dict__
 
-    return{
-        "message":"User Account Was Created Successfully.",
-        "login_link":"/api/v1/auth/login"
-    }, 201
+
 
 
 def get_user_by_email(email):
@@ -58,9 +56,7 @@ def abort_if_user_found(email):
     """
     for user in USERS.values():
         if user['email'] == email:
-            return {
-                "message": "User with that email already exists"
-            }, 409
+            abort(409, message="User with that email already exists")
 
 
 def abort_user_not_found(email):
@@ -71,9 +67,7 @@ def abort_user_not_found(email):
     """
     for user in USERS.values():
         if user['email'] == email:
-            return 
-    return {
-        "message": "Your email or password is invalid. Please register first",
-        "login_link": "/api/v1/auth/register"
-    }, 404        
+            return user
+    return None
+        
 
