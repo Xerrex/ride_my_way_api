@@ -2,6 +2,7 @@ from unittest import main
 import json
 
 from app import create_app
+from app.data.ride_data import RIDES
 from . import TestBase
 
 class RideCase(TestBase):
@@ -9,11 +10,12 @@ class RideCase(TestBase):
     """
 
     test_ride = {
-        "starting": "Nairobi-Kencom",
+        "starting_point": "Nairobi-Kencom",
         "destination": "Taita-wunda",
-        "depature-time": "26-06-2018 21:00",
+        "depart_time": "26-06-2018 21:00",
         "eta": "27-06-2018 03:00",
-        "seats": 4
+        "seats": 4,
+        "vehicle": "KCH 001"
     }
 
     ride_user = {
@@ -44,7 +46,7 @@ class RideCase(TestBase):
     def tearDown(self):
         
         self.client.post('/api/v1/auth/logout', content_type='application/json')
-        # clear RIDES
+        RIDES.clear()
 
         self.app = None
         self.client = None
