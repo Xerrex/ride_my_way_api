@@ -6,7 +6,7 @@ from app.validators import string_validator, date_validator
 
 from app.data.ride_data import create_ride, get_rides,\
     rides_generator, get_ride, abort_ride_not_found, \
-    make_request, abort_ride_request_found,retract_request
+    make_request, abort_ride_request_found,retract_request, update_ride
 
 def check_active_session():
     """Check if there is an active user sssion
@@ -95,6 +95,62 @@ class RideResource(Resource):
             }, 404
 
         return get_ride(rideId), 200
+
+    
+    update_parser = reqparse.RequestParser()
+    update_parser.add_argument('starting_point', type=string_validator,
+                                required=True, location='json')
+    
+    update_parser.add_argument('destination', type=string_validator,
+                                required=True, location='json')
+
+    update_parser.add_argument('depart_time', type=date_validator,
+                                required=True, location='json')
+
+    update_parser.add_argument('eta', type=date_validator,
+                                required=True, location='json')
+    
+    update_parser.add_argument('seats', type=int,
+                                required=True, location='json')
+    
+    update_parser.add_argument('vehicle', type=string_validator,
+                                required=True, location='json')
+
+    def put(self, rideId):
+        """update Ride details
+        
+        Arguments:
+            rideId {String} -- Unique Ride identifier.
+        """
+        check_active_session()
+
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        ride = get_ride(rideId)
+
+        if ride['driver']==session['userID']:
+            update_args = self.update_parser.parse_args()
+            update_ride(rideId, 
+                        starting_point=update_args['starting_point'],
+                        destination=update_args['destination'],
+                        depart_time=update_args['depart_time'],
+                        eta=update_args['eta'],
+                        vehicle=update_args['vehicle'],
+                        seats=update_args['seats'])
+            return {
+                "message":"Ride details were update"
+            },200
+            
+        return {
+            "message":"Your do not own the ride"
+        }, 401
+
+        
+
+
 
 
 class RideRequestResource(Resource):
