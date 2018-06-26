@@ -5,7 +5,18 @@ from flask_restful import Resource, reqparse
 from app.validators import string_validator, date_validator
 
 from app.data.ride_data import create_ride, get_rides,\
-    rides_generator, get_ride, abort_ride_not_found
+    rides_generator, get_ride, abort_ride_not_found, \
+    make_request, abort_ride_request_found,retract_request
+
+def check_active_session():
+    """Check if there is an active user sssion
+    """
+    if 'userID' not in session:
+        return {
+            "message":"You must be logged in to Create new ride",
+            "login_link": "/api/v1/auth/login"
+        }, 401
+
 
 class RidesResource(Resource):
     """Handles Rides Resource
@@ -37,11 +48,7 @@ class RidesResource(Resource):
         """Creates a new ride
         """
 
-        if 'userID' not in session:
-            return {
-                "message":"You must be logged in to Create new ride",
-                "login_link": "/api/v1/auth/login"
-            }, 401
+        check_active_session()
 
         ride_args = self.ride_parser.parse_args()
 
@@ -62,6 +69,8 @@ class RidesResource(Resource):
     def get(self):
         """Get all available rides
         """
+        check_active_session()
+
         rides_generator(20)
         return get_rides(), 200
 
@@ -78,13 +87,67 @@ class RideResource(Resource):
         Arguments:
             rideId {String} -- Unique Ride identifier.
         """
+        check_active_session()
+
         if not abort_ride_not_found(rideId):
-            
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
 
         return get_ride(rideId), 200
+
+
+class RideRequestResource(Resource):
+    """Handles the Ride Requests resources
+
+    endpoint: /api/v1/rides/<rideId>/requests
+    """
+    req_parser = reqparse.RequestParser()
+    req_parser.add_argument('destination', type=string_validator,
+                            required=True, location='json')
+
+    def post(self, rideId):
+        """Makes a request to join a ride
+        
+        Arguments:
+            rideId {String} -- Unique Identifier of a ride
+        """
+        check_active_session()
+
+        req_args = self.req_parser.parse_args()
+
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        abort_ride_request_found(rideId, session['userID'])
+
+        req = make_request(session['userID'], req_args['destination'], rideId)
+
+        return{
+            "message": "You have requested to join the ride",
+            "ride": req[1]
+        }, 201
+
+    def delete(self, rideId):
+        """Retracts a Request to join a ride
+        
+        Arguments:
+            rideId {String} -- Unique Indentifier of a ride
+        """
+        check_active_session()
+
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        response = retract_request(session['userID'], rideId)
+
+        return{
+            "message": response
+        }, 204
 
 
 
