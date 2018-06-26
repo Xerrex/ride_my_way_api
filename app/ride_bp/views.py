@@ -4,7 +4,7 @@ from flask_restful import Resource, reqparse
 
 from app.validators import string_validator, date_validator
 
-from app.data.ride_data import create_ride
+from app.data.ride_data import create_ride, get_rides, rides_generator
 
 class RidesResource(Resource):
     """Handles Rides Resource
@@ -56,6 +56,14 @@ class RidesResource(Resource):
             "message":"New ride offer was created",
             "view_ride":"/api/v1/rides/{}".format(ride[0])
         }, 201
+
+
+    def get(self):
+        """Get all available rides
+        """
+        rides_generator(20)
+        return get_rides(), 200
+
 
 
         
