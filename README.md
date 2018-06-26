@@ -18,6 +18,15 @@
 
 ## Table of contents
 * [Available endpoints](#available-endpoints)
+  * [User Registration](#user-Registration)
+  * [User Login](#user-login)
+  * [User Logout](#user-logout)
+  * [Creates a ride offer](#creates-a-ride-offer)
+  * [Get available rides](#get-available-rides)
+  * [Get a specific ride](#get-a-specific-ride)
+  * [Make requests to join a ride](#make-requests-to-join-a-ride)
+  * [Retract request to join a ride](#retract-request-to-join-a-ride)
+
 * [Installation and Usage](#installation-and-usage)
   * [Get Repo](#clone-or-download-repo)
   * [Virtual environment & activation](#create-virtual-environment-&-Activate)
@@ -26,19 +35,22 @@
   * [Run the app](#run-the-app)
   * [Run tests](#run-tests)
 
-## Available endpoints 
-* `POST /api/v1/auth/register`: User Registration
-   ```
-   content_type="application/json"
+## Available endpoints
+*  #### User Registration. 
 
-   {
-       "name": "alex dev",
-       "email: "alex@dev.com",
-       "password: "eleganttests11"
-   }
-   ```
+    `POST /api/v1/auth/register`: 
+    ```
+    content_type="application/json"
 
-* `POST /api/v1/auth/login`: User Login
+    {
+        "name": "alex dev",
+        "email: "alex@dev.com",
+        "password: "eleganttests11"
+    }
+    ```
+
+* #### User Login.
+    `POST /api/v1/auth/login`: 
     ```
     content_type="application/json"
 
@@ -48,9 +60,12 @@
     }
     ```
 
-* `POST /api/v1/auth/logout`: User Logout
+* #### User Logout. 
+    `POST /api/v1/auth/logout`
     
-* `POST /api/v1/rides`: Creates a New ride offer
+
+* #### Creates a ride offer.
+    `POST /api/v1/rides`: 
     ```
     content_type="application/json"
 
@@ -63,9 +78,24 @@
         "vehicle": "KCH 001"
     }
     ```
-* `GET /api/v1/rides`: get available rides  
+* #### Get available rides.
+    `GET /api/v1/rides`
 
-* `GET /api/v1/rides/<rideId>`: Get a specific ride
+
+* #### Get a specific ride.
+    `GET /api/v1/rides/<rideId>` 
+
+* #### Make requests to join a ride.
+    `POST /api/v1/rides/<rideId>/requests`:
+    ```
+    content_type="application/json"
+
+    {
+        "destination": "Voi"
+    }
+    ```
+* #### Retract request to join a ride
+    `DELETE /api/v1/rides/<rideId>/requests`
 
 ## Installation and usage
 
