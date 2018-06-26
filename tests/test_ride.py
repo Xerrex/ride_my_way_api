@@ -2,7 +2,7 @@ from unittest import main
 import json
 
 from app import create_app
-from app.data.ride_data import RIDES
+from app.data.ride_data import RIDES, REQUESTS
 from . import TestBase
 
 class RideCase(TestBase):
@@ -47,6 +47,7 @@ class RideCase(TestBase):
         
         self.client.post('/api/v1/auth/logout', content_type='application/json')
         RIDES.clear()
+        REQUESTS.clear()
 
         self.app = None
         self.client = None
@@ -151,7 +152,6 @@ class RideCase(TestBase):
         data = json.loads(response.get_data(as_text=True))
 
         ride_request={
-            "userid": "user1",
             "destination": "Voi"
         }
 
@@ -173,7 +173,6 @@ class RideCase(TestBase):
                                     content_type='application/json')
 
         ride_request={
-            "userid": "user1",
             "destination": "Voi"
         }
 
@@ -187,6 +186,7 @@ class RideCase(TestBase):
         # retract request
         response = self.client.delete('%s/requests' %data['view_ride'], 
                                         content_type='application/json')
+        self.assert204(response)
 
     def test_accept_ride_in_request(self):
         """Test accepting a request to join ride

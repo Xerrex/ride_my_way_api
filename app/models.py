@@ -25,4 +25,22 @@ class Ride:
         self.seats = kwargs['seats']
         self.vehicle = kwargs['vehicle']
         self.driver = kwargs['driver']
+
+class RideRequest:
+    """Defines a Ride_request
+    """
+
+    def __init__(self, user, destination, ride):
+        """Create a new Ride_Request Instance
+        
+        Arguments:
+            user {String} -- Unique User Identifier
+            destination {String} -- Town the User is headed to.
+            ride {String} -- Unique Ride Identifier
+        """
+        self.user = user
+        self.destination = destination
+        self.ride = ride
+        self.status = "" # toggle: acccepted/rejected
+        
     
