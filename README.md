@@ -63,6 +63,8 @@
         "vehicle": "KCH 001"
     }
     ```
+* `GET /api/v1/rides`: get available rides    
+
 ## Installation and usage
 
 **NB** 
