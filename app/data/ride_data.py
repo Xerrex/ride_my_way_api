@@ -1,5 +1,6 @@
 """Define Ride Data container and Data fetching methods
 """
+from datetime import datetime, timedelta
 from app.models import Ride
 
 RIDES = {}
@@ -16,7 +17,7 @@ def create_ride(**kwargs):
             seats=kwargs['seats'],
             driver=kwargs['driver'])
     
-    ride_id = "user{}".format(len(RIDES)+1)
+    ride_id = "ride{}".format(len(RIDES)+1)
 
     RIDES[ride_id] = ride.__dict__
 
@@ -29,4 +30,27 @@ def get_rides():
     return RIDES
 
 
+def rides_generator(number):
+    """Generate rides
+    
+    Arguments:
+        number {Integer} -- Number of rides you want to create
+    """
+    
+    for x in range(1,number+1):
+        current_date = datetime.now()
+        depart_time = current_date + timedelta(days=x)
+        depart_time = depart_time.strftime("%d-%m-%Y %H:%M")
+
+        eta = current_date + timedelta(days=x+1)
+        eta = eta.strftime("%d-%m-%Y %H:%M")
+
+        create_ride(starting_point="town{}-meetingplace{}".format(x,x),
+                    destination="town{}".format(x+1),
+                    depart_time=depart_time,
+                    eta=eta,
+                    vehicle="KCH {}{}7b".format(x,x+3),
+                    seats=5,
+                    driver="user{}".format(x))
+        
 
