@@ -31,6 +31,11 @@ def get_rides():
 
 
 def rides_generator(number):
+    """Generate rides
+    
+    Arguments:
+        number {Integer} -- Number of rides you want to create
+    """
     
     for x in range(1,number+1):
         current_date = datetime.now()
