@@ -4,7 +4,8 @@ from flask_restful import Resource, reqparse
 
 from app.validators import string_validator, date_validator
 
-from app.data.ride_data import create_ride, get_rides, rides_generator
+from app.data.ride_data import create_ride, get_rides,\
+    rides_generator, get_ride, abort_ride_not_found
 
 class RidesResource(Resource):
     """Handles Rides Resource
@@ -63,6 +64,31 @@ class RidesResource(Resource):
         """
         rides_generator(20)
         return get_rides(), 200
+
+
+class RideResource(Resource):
+    """Handles the ride resources
+    
+    endpoint: /api/v1/rides/<rideId>
+    """
+
+    def get(self,rideId):
+        """Gets a rides whose id is specicified
+        
+        Arguments:
+            rideId {String} -- Unique Ride identifier.
+        """
+        if not abort_ride_not_found(rideId):
+            
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        return get_ride(rideId), 200
+
+
+
+
 
 
 

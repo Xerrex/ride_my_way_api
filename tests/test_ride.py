@@ -91,7 +91,7 @@ class RideCase(TestBase):
         data = json.loads(response.get_data(as_text=True))     
         response = self.client.get(data['view_ride'], content_type='application/json')
         data = json.loads(response.get_data(as_text=True))
-        self.assertEqual(self.test_ride['starting'], data['starting'])
+        self.assertEqual(self.test_ride['starting_point'], data['starting_point'])
 
     def test_ride_details_update(self):
         """Test ride update details
@@ -105,11 +105,12 @@ class RideCase(TestBase):
                                         content_type='application/json')
                                 
         ride_update = {
-            "starting": "Nairobi-Kencom",
+            "starting_point": "Nairobi-Kencom",
             "destination": "Taita-wunda",
-            "depature-time": "26-06-2018 21:00",
+            "depart_time": "26-06-2018 21:00",
             "eta": "27-06-2018 03:00",
-            "seats": 7
+            "seats": 7,
+            "vehicle": "KCH 001"
         }
 
         data = json.loads(response.get_data(as_text=True))

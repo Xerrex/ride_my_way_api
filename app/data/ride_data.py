@@ -30,6 +30,12 @@ def get_rides():
     return RIDES
 
 
+def get_ride(rideId):
+    """Get a ride with the Id:rideId
+    """
+    return RIDES[rideId]
+
+
 def rides_generator(number):
     """Generate rides
     
@@ -52,5 +58,11 @@ def rides_generator(number):
                     vehicle="KCH {}{}7b".format(x,x+3),
                     seats=5,
                     driver="user{}".format(x))
-        
+
+
+def abort_ride_not_found(ride):
+    
+    if ride not in RIDES.keys():
+        return None
+    return "Ride exists"
 
