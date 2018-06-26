@@ -22,6 +22,7 @@
   * [User Login](#user-login)
   * [User Logout](#user-logout)
   * [Creates a ride offer](#creates-a-ride-offer)
+  * [Update a ride](#update-a-ride)
   * [Get available rides](#get-available-rides)
   * [Get a specific ride](#get-a-specific-ride)
   * [Make requests to join a ride](#make-requests-to-join-a-ride)
@@ -36,6 +37,9 @@
   * [Run tests](#run-tests)
 
 ## Available endpoints
+**NB** 
+* Data fields shown below endpoint
+
 *  #### User Registration. 
 
     `POST /api/v1/auth/register`: 
@@ -78,12 +82,28 @@
         "vehicle": "KCH 001"
     }
     ```
+
 * #### Get available rides.
     `GET /api/v1/rides`
 
 
 * #### Get a specific ride.
     `GET /api/v1/rides/<rideId>` 
+
+* #### Update a ride
+    `PUT /api/v1/rides/<rideId>`
+    ```
+    content_type="application/json"
+
+        {
+            "starting_point": "Nairobi-Kencom",
+            "destination": "Taita-wunda",
+            "depart_time": "26-06-2018 21:00",
+            "eta": "27-06-2018 03:00",
+            "seats": 4,
+            "vehicle": "KCH 001"
+        }
+    ```
 
 * #### Make requests to join a ride.
     `POST /api/v1/rides/<rideId>/requests`:
