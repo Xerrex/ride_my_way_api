@@ -27,6 +27,17 @@ def create_ride(**kwargs):
 
     return [ride_id, ride.__dict__]
 
+def update_ride(ride_id, **kwargs):
+    """update a ride"""
+    ride = RIDES[ride_id]
+    ride['starting_point'] = kwargs['starting_point']
+    ride['destination'] = kwargs['destination']
+    ride['depart_time'] = kwargs['depart_time']
+    ride['eta'] = kwargs['eta']
+    ride['vehicle'] = kwargs['vehicle']
+    ride['seats'] = kwargs['seats']
+
+    return [ride_id, ride]
 
 def get_rides():
     """Get all avalaible ride offers
@@ -54,6 +65,7 @@ def make_request(user, destination, ride):
     REQUESTS[req_id] = req.__dict__
     
     return [req_id, req.__dict__]
+
 
 def retract_request(user, ride):
     """Retracts user request to join a ride
