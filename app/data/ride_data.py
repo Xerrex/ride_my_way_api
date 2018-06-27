@@ -27,6 +27,7 @@ def create_ride(**kwargs):
 
     return [ride_id, ride.__dict__]
 
+
 def update_ride(ride_id, **kwargs):
     """update a ride"""
     ride = RIDES[ride_id]
@@ -38,6 +39,7 @@ def update_ride(ride_id, **kwargs):
     ride['seats'] = kwargs['seats']
 
     return [ride_id, ride]
+
 
 def get_rides():
     """Get all avalaible ride offers
@@ -78,7 +80,21 @@ def retract_request(user, ride):
         if v['user']==user and v['ride']==ride:
             del REQUESTS[k]
             return "You have retracted request to join ride"
-           
+
+
+def get_ride_requests(ride_id):	
+    """Get requests made on a ride.
+    
+    Arguments:
+        ride_id {String} -- Unique ride Indentifier
+    """
+    ride_reqs = {}
+    for k, v in REQUESTS.items():
+        if v['ride'] == ride_id:
+            ride_reqs[k] = v
+    return ride_reqs        
+
+    			
 
 
 

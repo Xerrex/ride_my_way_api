@@ -6,7 +6,9 @@ from app.validators import string_validator, date_validator
 
 from app.data.ride_data import create_ride, get_rides,\
     rides_generator, get_ride, abort_ride_not_found, \
-    make_request, abort_ride_request_found,retract_request, update_ride
+    make_request, abort_ride_request_found,retract_request, \
+    update_ride, get_ride_requests
+
 
 def check_active_session():
     """Check if there is an active user sssion
@@ -147,11 +149,7 @@ class RideResource(Resource):
         return {
             "message":"Your do not own the ride"
         }, 401
-
         
-
-
-
 
 class RideRequestResource(Resource):
     """Handles the Ride Requests resources
@@ -183,7 +181,7 @@ class RideRequestResource(Resource):
 
         return{
             "message": "You have requested to join the ride",
-            "ride": req[1]
+            "view_request": '/api/v1/rides/{}/requests/{}'.format(rideId,req[0])
         }, 201
 
     def delete(self, rideId):
@@ -205,12 +203,23 @@ class RideRequestResource(Resource):
             "message": response
         }, 204
 
-
-
-
-
-
-
+    def get(self, rideId):
+        """Fetch all requests on a ride
         
+        Arguments:
+            rideId {String} -- Unique Ride Identifier
+        """
+        check_active_session()
 
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
 
+        ride = get_ride(rideId)
+        if ride['driver'] == session['userID']:
+            # get ride requests
+            return get_ride_requests(rideId), 200
+        return {
+            "message": "Your not authorized to view these requests"
+        }, 401
