@@ -2,12 +2,13 @@
 from flask import session
 from flask_restful import Resource, reqparse
 
-from app.validators import string_validator, date_validator
+from app.validators import string_validator, date_validator, action_validator
 
 from app.data.ride_data import create_ride, get_rides,\
     rides_generator, get_ride, abort_ride_not_found, \
     make_request, abort_ride_request_found,retract_request, \
-    update_ride, get_ride_requests
+    update_ride, get_ride_requests, abort_request_not_found, \
+    get_request, update_request_status
 
 
 def check_active_session():
@@ -151,7 +152,7 @@ class RideResource(Resource):
         }, 401
         
 
-class RideRequestResource(Resource):
+class RideRequestsResource(Resource):
     """Handles the Ride Requests resources
 
     endpoint: /api/v1/rides/<rideId>/requests
@@ -223,3 +224,77 @@ class RideRequestResource(Resource):
         return {
             "message": "Your not authorized to view these requests"
         }, 401
+
+
+class RequestActionResource(Resource):
+    """Handles Request Action:accept or reject
+    
+    endpoint /api/v1/rides/<rideId>/requests/<requestId>
+    """
+    action_parser = reqparse.RequestParser()
+    action_parser.add_argument('action', type=action_validator, 
+                                location='json', required=True)
+
+    def put(self, rideId, requestId):
+        """Toggles request status: rejected / accepted
+        """
+        check_active_session()
+
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        ride = get_ride(rideId)
+        if ride['driver'] not in session['userID']:
+            return {
+                "message": "Your not authorized to view these requests"
+            }, 401
+        
+
+        if not abort_request_not_found(requestId):
+            return {
+                "message": "Request to the ride Does not exist",
+                "requests_link":'/api/v1/rides/{}/requests'.format(rideId)
+            }, 404
+        
+        action_arg = self.action_parser.parse_args()
+        
+        req = get_request(requestId)
+
+        if req['status'] == action_arg['action']:
+            return {
+                "message": "Ride request has already been '{}'".format(action_arg['action'])
+            }, 409
+
+        update_request_status(action_arg['action'], requestId) 
+        
+        message = "Ride Request has been '{}'".format(get_request(requestId)['status'])
+        return {
+            "message":message
+        }, 200
+
+    def get(self, rideId, requestId):
+        """Get a request"""
+
+        check_active_session()
+
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        ride = get_ride(rideId)
+        if ride['driver'] not in session['userID']:
+            return {
+                "message": "Your not authorized to view these requests"
+            }, 401
+        
+        if not abort_request_not_found(requestId):
+            return {
+                "message": "Request to the ride Does not exist",
+                "requests_link":'/api/v1/rides/{}/requests'.format(rideId)
+            }, 404
+        
+        return get_request(requestId), 200
+
