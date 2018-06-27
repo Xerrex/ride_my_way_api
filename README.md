@@ -28,6 +28,7 @@
   * [Make requests to join a ride](#make-requests-to-join-a-ride)
   * [Retract request to join a ride](#retract-request-to-join-a-ride)
   * [View ride requests](#view-ride-requests)
+  * [Accept or Reject a Request](#accept-or-reject-a-request)
 
 * [Installation and Usage](#installation-and-usage)
   * [Get Repo](#clone-or-download-repo)
@@ -120,6 +121,25 @@
 
 * #### View ride requests
     `GET /api/v1/rides/<rideId>/requests`
+
+* #### Accept or Reject a Request
+    `PUT /api/v1/rides/<rideId>/requests/<requestId>`
+  * ##### Reject:
+    ```
+    content_type="application/json"
+
+    {
+        "action": "rejected"
+    }
+    ```
+  * ##### Accept:
+    ```
+    content_type="application/json"
+
+    {
+        "action": "Accepted"
+    }
+    ```  
 
 ## Installation and usage
 
