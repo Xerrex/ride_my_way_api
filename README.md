@@ -27,6 +27,7 @@
   * [Get a specific ride](#get-a-specific-ride)
   * [Make requests to join a ride](#make-requests-to-join-a-ride)
   * [Retract request to join a ride](#retract-request-to-join-a-ride)
+  * [View ride requests](#view-ride-requests)
 
 * [Installation and Usage](#installation-and-usage)
   * [Get Repo](#clone-or-download-repo)
@@ -116,6 +117,9 @@
     ```
 * #### Retract request to join a ride
     `DELETE /api/v1/rides/<rideId>/requests`
+
+* #### View ride requests
+    `GET /api/v1/rides/<rideId>/requests`
 
 ## Installation and usage
 

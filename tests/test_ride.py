@@ -1,5 +1,6 @@
 from unittest import main
 import json
+from datetime import datetime, timedelta
 
 from app import create_app
 from app.data.ride_data import RIDES, REQUESTS
@@ -8,12 +9,14 @@ from . import TestBase
 class RideCase(TestBase):
     """Contains tests on a ride and requests made on ride.
     """
-
+    current_date = datetime.now() + timedelta(days=1)
+    eta = current_date + timedelta(days=1)
+    
     test_ride = {
         "starting_point": "Nairobi-Kencom",
         "destination": "Taita-wunda",
-        "depart_time": "26-06-2018 21:00",
-        "eta": "27-06-2018 03:00",
+        "depart_time": "{}".format(current_date.strftime("%d-%m-%Y %H:%M")),
+        "eta": "{}".format(eta.strftime("%d-%m-%Y %H:%M")),
         "seats": 4,
         "vehicle": "KCH 001"
     }
@@ -24,9 +27,20 @@ class RideCase(TestBase):
         "password": "12345dfgh"
     }
 
+    ride_pass = {
+        "name": "Bob Pass",
+        "email": "bobpass@dev.com",
+        "password": "12345dfghqwyn"
+    }
+
     rider_login = {
         "email": "bobrider@dev.com",
         "password": "12345dfgh"
+    }
+
+    pass_login = {
+        "email": "bobpass@dev.com",
+        "password": "12345dfghqwyn"
     }
 
     def setUp(self):
@@ -60,8 +74,8 @@ class RideCase(TestBase):
         """
 
         response = self.client.post('/api/v1/rides', 
-                                        data=json.dumps(self.test_ride), 
-                                        content_type='application/json')
+                                    data=json.dumps(self.test_ride), 
+                                    content_type='application/json')
         self.assert201(response)
     
     def test_get_available_rides(self):
@@ -108,8 +122,8 @@ class RideCase(TestBase):
         ride_update = {
             "starting_point": "Nairobi-Kencom",
             "destination": "Taita-wunda",
-            "depart_time": "26-06-2018 21:00",
-            "eta": "27-06-2018 03:00",
+            "depart_time": "{}".format(self.current_date.strftime("%d-%m-%Y %H:%M")),
+            "eta": "{}".format(self.eta.strftime("%d-%m-%Y %H:%M")),
             "seats": 7,
             "vehicle": "KCH 001"
         }
@@ -187,6 +201,52 @@ class RideCase(TestBase):
         response = self.client.delete('%s/requests' %data['view_ride'], 
                                         content_type='application/json')
         self.assert204(response)
+
+    def test_viewing_requests(self):
+        """Test that you can view Requests
+
+        Assert that a valid GET requests to 
+        /api/v1/rides/<rideId/ returns requests 
+        if you own the ride.
+        """
+        # create ride
+        response = self.client.post('/api/v1/rides', 
+                                        data=json.dumps(self.test_ride), 
+                                        content_type='application/json')
+        self.assert201(response)
+        data = json.loads(response.get_data(as_text=True))
+        # make ride request
+        ride_request={
+            "destination": "Voi"
+        }
+
+        
+        response = self.client.post('%s/requests' %data['view_ride'], 
+                                    data=json.dumps(ride_request), 
+                                    content_type='application/json')
+        
+        self.assert201(response)
+
+        # view requests 
+        response = self.client.get('%s/requests' %data['view_ride'], 
+                                    content_type='application/json')
+        
+        self.assert200(response)
+
+        # new User
+        self.client.post('/api/v1/auth/logout', content_type='application/json')
+
+        self.client.post('/api/v1/auth/register', 
+                            data=json.dumps(self.ride_pass), 
+                            content_type='application/json')
+
+        self.client.post('/api/v1/auth/login', 
+                            data=json.dumps(self.pass_login), 
+                            content_type='application/json')
+
+        response = self.client.get('%s/requests' %data['view_ride'], 
+                                    content_type='application/json')                    
+        self.assert401(response)
 
     def test_accept_ride_in_request(self):
         """Test accepting a request to join ride
