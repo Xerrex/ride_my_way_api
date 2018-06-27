@@ -9,6 +9,7 @@ RIDES = {}
 
 REQUESTS = {}
 
+
 def create_ride(**kwargs):
     """Create a new ride
     """
@@ -94,13 +95,27 @@ def get_ride_requests(ride_id):
             ride_reqs[k] = v
     return ride_reqs        
 
-    			
 
+def get_request(reqId):
+    """Fetch a ride 
+    
+    Arguments:
+        reqId {String} -- Unique request identifier
+    """
+    return REQUESTS[reqId]
 
+def update_request_status(status, requestID):
+    """Update ride request status
+    
+    Arguments:
+        status {String} -- should be 'accepted' or 'rejected'
+        requestID {String} -- Unique request identifier
+    """
+    REQUESTS[requestID]['status'] = status
 
 # #####################################Helpers##################################################
 
-"""Defines Ride Methods
+"""Defines Ride helper Methods
 """
 
 
@@ -147,4 +162,14 @@ def abort_ride_request_found(ride, user):
         if v['ride']==ride and v['user']==user:
             msg="You have already made a request to join ride"
             abort(409, message=msg)
+
+def abort_request_not_found(reqId):
+    """Abort if Ride not found
+    
+    Arguments:
+        reqId {String} -- Unique ride identifier
+    """
+    if reqId not in REQUESTS.keys():
+        return None
+    return "request exists"
 

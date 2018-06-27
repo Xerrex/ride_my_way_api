@@ -89,5 +89,19 @@ def date_validator(value, name):
         message = "{} must be greater than the current time now: {}".\
             format(name, current_date)
         raise ValueError(message)
-    return
+    return value
 
+def action_validator(value, name):
+    """Validate Action to be either:accepted / rejected
+    
+    Arguments:
+        value {String} -- data to validate
+        name {String} -- field being validated
+    """
+
+    string_validator(value, name)
+    
+    if value.lower() in 'accepted' or value.lower() in 'rejected':
+        return value
+    message = "{} must be either 'rejected' or 'accepted'".format(name)
+    raise ValueError(message)
