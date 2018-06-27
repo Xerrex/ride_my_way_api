@@ -260,13 +260,12 @@ class RideCase(TestBase):
                                     data=json.dumps(self.test_ride), 
                                     content_type='application/json')
         
+        ride_link = json.loads(response.get_data(as_text=True))['view_ride']
+
         # make ride in request
         ride_request={
-            "userid": "user1",
             "destination": "Voi"
         }
-
-        ride_link = json.loads(response.get_data(as_text=True))['view_ride']
 
         response = self.client.post('%s/requests' %ride_link, 
                                     data=json.dumps(ride_request), 
@@ -275,14 +274,10 @@ class RideCase(TestBase):
         request_link = json.loads(response.get_data(as_text=True))['view_request']
 
         # accept request
-        response = self.client.post(request_link, content_type='application/json')
+        response = self.client.put(request_link, data=json.dumps({'action':'accepted'}), 
+                                    content_type='application/json')
 
-        # get the request
-        response = self.client.get(request_link, content_type='application/json')
-
-        request =json.loads(response.get_data(as_text=True))
-
-        self.assertEqual(request['status'], 'accepted')
+        self.assert200(response)
 
     def test_reject_ride_in_request(self):
         """Test rejecting a ride request
@@ -297,7 +292,6 @@ class RideCase(TestBase):
         
         # make ride in request
         ride_request={
-            "userid": "user1",
             "destination": "Voi"
         }
 
@@ -310,11 +304,13 @@ class RideCase(TestBase):
         request_link = json.loads(response.get_data(as_text=True))['view_request']
 
         # Reject request
-        response = self.client.put(request_link, content_type='application/json')
+        self.client.put(request_link, data=json.dumps({'action':"rejected"}),
+                        content_type='application/json')
 
         # get the request
         response = self.client.get(request_link, content_type='application/json')
 
+        self.assert200(response)
         request =json.loads(response.get_data(as_text=True))
 
         self.assertEqual(request['status'], 'rejected')
