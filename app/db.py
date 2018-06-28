@@ -19,6 +19,12 @@ def  get_db():
             )
         return g.db
 
+
+def commit_db():
+    """Make database changes persistent"""
+    get_db().commit()
+
+
 def close_db(e=None):
     """If this request connected to the database, close the
     connection.
@@ -58,8 +64,7 @@ def init():
 @with_appcontext
 def commit():
     """Make db changes persistent"""
-    db = get_db()
-    db.commit()
+    commit_db()
     click.echo('Database changes made persistent')
 
 
