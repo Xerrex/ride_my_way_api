@@ -167,11 +167,17 @@
     (venv)$ touch .env
     ```
     * **Add the following lines to .env file**
+       * replace [] your actual value
     ```
     source venv/bin/activate
     export export FLASK_APP="run.py"
     export SECRET_KEY="[replace with phrase]"
     export FLASK_ENV=development
+    export DATABASE="[name of db]"
+    export DATABASE_TEST="[name of test db]"
+    export DATABASE_HOST="127.0.0.1"
+    export DATABASE_USER="[db user]"
+    export DATABASE_PASS="[db password]"
     ```
     * You can now run **source .env** to:
       * activate virtual enviroment
