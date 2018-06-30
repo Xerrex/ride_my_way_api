@@ -2,7 +2,7 @@
 
 They are constructed to work with Flask-Restful.
 """
-import datetime
+from datetime import datetime
 
 def string_validator(value, name):
     """ Validate a string value
@@ -83,11 +83,9 @@ def date_validator(value, name):
     """
     string_validator(value, name)
 
-    current_date = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
-
-    if value < current_date:
+    if datetime.strptime(value, "%d-%m-%Y %H:%M") < datetime.now():
         message = "{} must be greater than the current time now: {}".\
-            format(name, current_date)
+            format(name, datetime.now().strftime("%d-%m-%Y %H:%M"))
         raise ValueError(message)
     return value
 
