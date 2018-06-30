@@ -25,7 +25,7 @@ def commit_db():
     get_db().commit()
 
 
-def close_db():
+def close_db(e=None):
     """If this request connected to the database, close the
     connection.
     """
