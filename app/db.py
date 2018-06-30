@@ -25,7 +25,7 @@ def commit_db():
     get_db().commit()
 
 
-def close_db(e=None):
+def close_db():
     """If this request connected to the database, close the
     connection.
     """
@@ -33,6 +33,7 @@ def close_db(e=None):
 
     if db is not None:
         db.close()
+
 
 def initialize():
     """Clear existing data and create new tables.
@@ -42,7 +43,7 @@ def initialize():
     db = get_db()
 
     with current_app.open_resource('schema.sql') as f, db.cursor() as cursor:
-        cursor.execute(f.read().decode('utf8'))
+        cursor.execute(f.read().decode('utf8'))       
         
 
 @click.group()
@@ -66,6 +67,8 @@ def commit():
     """Make db changes persistent"""
     commit_db()
     click.echo('Database changes made persistent')
+    close_db()
+    click.echo('Database connection closed')
 
 
 def init_app(app):
