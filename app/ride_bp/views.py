@@ -24,9 +24,45 @@ def check_active_session():
 class RidesResource(Resource):
     """Handles Rides Resource
     
-    endpoint /rides
+    endpoint GET /rides
     """
 
+    def get(self):
+        """Get all available rides
+        """
+        check_active_session()
+
+        rides_generator(20)
+        return get_rides(), 200
+
+
+class RideResource(Resource):
+    """Handles the ride resources
+    
+    endpoint: /api/v1/rides/<rideId>
+    """
+
+    def get(self,rideId):
+        """Gets a rides whose id is specicified
+        
+        Arguments:
+            rideId {String} -- Unique Ride identifier.
+        """
+        check_active_session()
+
+        if not abort_ride_not_found(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        return get_ride(rideId), 200
+
+
+class RideCreation(Resource):
+    """Create a ride Resource
+    
+    Handles /users/rides
+    """
     ride_parser = reqparse.RequestParser()
     ride_parser.add_argument('starting_point', type=string_validator,
                                 required=True, location='json')
@@ -65,41 +101,15 @@ class RidesResource(Resource):
         
         return {
             "message":"New ride offer was created",
-            "view_ride":"/api/v1/rides/{}".format(ride[0])
+            "view_ride":"/api/v1/users/rides/{}".format(ride[0])
         }, 201
 
 
-    def get(self):
-        """Get all available rides
-        """
-        check_active_session()
+class RideUpdate(Resource):
+    """Handles ride update endpoint
 
-        rides_generator(20)
-        return get_rides(), 200
+    PUT /users/rides/<rideId>"""
 
-
-class RideResource(Resource):
-    """Handles the ride resources
-    
-    endpoint: /api/v1/rides/<rideId>
-    """
-
-    def get(self,rideId):
-        """Gets a rides whose id is specicified
-        
-        Arguments:
-            rideId {String} -- Unique Ride identifier.
-        """
-        check_active_session()
-
-        if not abort_ride_not_found(rideId):
-            return {
-                "message":"Ride:{} Does not exists".format(rideId)
-            }, 404
-
-        return get_ride(rideId), 200
-
-    
     update_parser = reqparse.RequestParser()
     update_parser.add_argument('starting_point', type=string_validator,
                                 required=True, location='json')
@@ -149,10 +159,10 @@ class RideResource(Resource):
             
         return {
             "message":"Your do not own the ride"
-        }, 401
-        
+        }, 401   
 
-class RideRequestsResource(Resource):
+
+class RideRequest(Resource):
     """Handles the Ride Requests resources
 
     endpoint: /api/v1/rides/<rideId>/requests
@@ -182,7 +192,7 @@ class RideRequestsResource(Resource):
 
         return{
             "message": "You have requested to join the ride",
-            "view_request": '/api/v1/rides/{}/requests/{}'.format(rideId,req[0])
+            "view_request": '/api/v1/users/rides/{}/requests/{}'.format(rideId,req[0])
         }, 201
 
     def delete(self, rideId):
@@ -203,6 +213,12 @@ class RideRequestsResource(Resource):
         return{
             "message": response
         }, 204
+
+    
+class RideRequests(Resource):
+    """Get all requests on a ride
+    endpoint GET /users/rides/<rideId>/requests'
+    """
 
     def get(self, rideId):
         """Fetch all requests on a ride
@@ -226,7 +242,7 @@ class RideRequestsResource(Resource):
         }, 401
 
 
-class RequestActionResource(Resource):
+class RequestAction(Resource):
     """Handles Request Action:accept or reject
     
     endpoint /api/v1/rides/<rideId>/requests/<requestId>
