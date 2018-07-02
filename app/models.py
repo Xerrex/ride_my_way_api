@@ -39,6 +39,25 @@ class Ride:
         self.seats = kwargs['seats']
         self.vehicle = kwargs['vehicle']
         self.driver = kwargs['driver']
+    
+    def save(self):
+        
+        db = get_db()
+        with db.cursor() as cursor:
+            fields = "(starting_point, destination, depart_time, \
+            eta, seats, vehicle, driver)"
+            query = "INSERT INTO rides " + fields + "\
+             VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
+            data = (self.starting_point, self.destination, self.depart_time, 
+                    self.eta, self.seats, self.vehicle, self.driver
+            )
+            cursor.execute(query, data)
+            ride_id = cursor.fetchone()[0]
+            db.commit()
+            db.close()
+
+            return ride_id
+
 
 class RideRequest:
     """Defines a Ride_request
