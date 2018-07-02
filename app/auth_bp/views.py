@@ -5,7 +5,7 @@ from flask_restful import Resource, reqparse
 from app.validators import string_validator, email_validator, length_validator
 
 from app.data.user_data import create_user, abort_if_user_found, \
-abort_user_not_found, get_user_by_email, verify_password
+get_user_by_email, verify_password
 
 class RegisterResource(Resource):
     """Handles the User Registration 
@@ -64,13 +64,13 @@ class LoginResource(Resource):
 
         user = get_user_by_email(email)
 
-        if user and verify_password(user[1]['password'], login_args['password']):
+        if user and verify_password(user[3], login_args['password']):
             # login user
             if 'userID' not in session:
                 session['userID'] = user[0]
 
                 return{
-                    "message":"Welcome back {}.".format(user[1]['name'])
+                    "message":"Welcome back '{}'.".format(user[1])
                 }, 200
 
             return {

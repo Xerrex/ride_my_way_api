@@ -3,10 +3,8 @@
 from werkzeug.security import check_password_hash
 from flask_restful import abort
 from app.models import User
+from app.db import get_db
 
-
-# User data container
-USERS = {}
 
 def create_user(name, email, password):
     """Creates a New user and saves it into container
@@ -17,12 +15,7 @@ def create_user(name, email, password):
         password {String} -- User password that is not hashed
     """
     user = User(name, email, password)
-
-    user_id = 'user{}'.format(len(USERS)+1)
-
-    USERS[user_id] = user.__dict__
-
-
+    user.save()
 
 
 def get_user_by_email(email):
@@ -31,10 +24,18 @@ def get_user_by_email(email):
     Arguments:
         email {String:email}
     """
-    for user_id in USERS.keys():
-        if USERS[user_id]['email'] == email:
-            return [user_id,USERS[user_id]]
-    return 
+    # for user_id in USERS.keys():
+    #     if USERS[user_id]['email'] == email:
+    #         return [user_id,USERS[user_id]]
+    # return 
+    db = get_db()
+    with db.cursor() as cursor:
+        query = "SELECT * FROM users WHERE email=%s"
+        cursor.execute(query, (email,))
+        user = cursor.fetchone()
+    if user:
+        return user
+    return None 
 
 
 def verify_password(password_hash, password):
@@ -54,20 +55,18 @@ def abort_if_user_found(email):
     Arguments:
         email {String:email} -- User email
     """
-    for user in USERS.values():
-        if user['email'] == email:
-            abort(409, message="User with that email already exists")
+    # for user in USERS.values():
+    #     if user['email'] == email:
+    #         abort(409, message="User with that email already exists")
 
+    db = get_db()
+    with db.cursor() as cursor:
+        query = "SELECT * FROM users WHERE email=%s"
+        cursor.execute(query, (email,))
+        user = cursor.fetchone()
+        
+    if user:
+       abort(409, message="User with that email already exists")     
 
-def abort_user_not_found(email):
-    """Abort with 404 status code
-    
-    Arguments:
-        email {[String:email]} -- email of user to look for
-    """
-    for user in USERS.values():
-        if user['email'] == email:
-            return user
-    return None
         
 
