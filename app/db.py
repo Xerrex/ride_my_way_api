@@ -20,11 +20,6 @@ def  get_db():
         return g.db
 
 
-def commit_db():
-    """Make database changes persistent"""
-    get_db().commit()
-
-
 def close_db(e=None):
     """If this request connected to the database, close the
     connection.
@@ -44,6 +39,9 @@ def initialize():
 
     with current_app.open_resource('schema.sql') as f, db.cursor() as cursor:
         cursor.execute(f.read().decode('utf8'))       
+        db.commit()
+        cursor.close()  
+        db.close()   
         
 
 @click.group()
@@ -59,16 +57,6 @@ def init():
 
     initialize()
     click.echo('Initialized the database.')
-
-
-@db.command()
-@with_appcontext
-def commit():
-    """Make db changes persistent"""
-    commit_db()
-    click.echo('Database changes made persistent')
-    close_db()
-    click.echo('Database connection closed')
 
 
 def init_app(app):
