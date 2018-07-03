@@ -69,11 +69,11 @@ class RideCase(TestBase):
     def test_ride_creation(self):
         """Test creation of a ride offer
 
-        Assert that a valid POST request to /api/v1/rides
+        Assert that a valid POST request to /api/v1/users/rides
         Creates a new ride.    
         """
 
-        response = self.client.post('/api/v1/rides', 
+        response = self.client.post('/api/v1/users/rides', 
                                     data=json.dumps(self.test_ride), 
                                     content_type='application/json')
         self.assert201(response)
@@ -111,7 +111,7 @@ class RideCase(TestBase):
     def test_ride_details_update(self):
         """Test ride update details
 
-        Assert that a valid PUT request to /api/v1/rides/<rideId>
+        Assert that a valid PUT request to /api/v1/users/rides/<rideId>
         updates the ride details.
         """
 
@@ -251,7 +251,8 @@ class RideCase(TestBase):
     def test_accept_ride_in_request(self):
         """Test accepting a request to join ride
 
-        Assert that a valid POST request to /api/v1/rides/<rideId>/requests/<number>
+        Assert that a valid PUT request to 
+        /api/v1/users/rides/<rideId>/requests/<number>
         accepts a join request making requester a passenger.
         """
 

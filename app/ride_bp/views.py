@@ -1,32 +1,66 @@
 """Defines ride Resources"""
 from flask import session
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, abort
 
 from app.validators import string_validator, date_validator, action_validator
 
 from app.data.ride_data import create_ride, get_rides,\
-    rides_generator, get_ride, abort_ride_not_found, \
-    make_request, abort_ride_request_found,retract_request, \
-    update_ride, get_ride_requests, abort_request_not_found, \
-    get_request, update_request_status
+    get_ride, make_request, abort_ride_request_found, \
+    retract_request, get_ride_requests, \
+    abort_request_not_found, get_request, \
+    update_request_status, abort_accepts_equal_seats, \
+    update_ride
 
 
 def check_active_session():
     """Check if there is an active user sssion
     """
     if 'userID' not in session:
-        return {
-            "message":"You must be logged in to Create new ride",
-            "login_link": "/api/v1/auth/login"
-        }, 401
+        msg = "You must be logged in to Create new ride"
+        link = "/api/v1/auth/login"
+        abort(401, message=msg, login_link=link)   
 
 
 class RidesResource(Resource):
     """Handles Rides Resource
     
-    endpoint /rides
+    endpoint GET /rides
     """
 
+    def get(self):
+        """Get all available rides
+        """
+        check_active_session()
+        return get_rides(), 200
+
+
+class RideResource(Resource):
+    """Handles the ride resources
+    
+    endpoint: /api/v1/rides/<rideId>
+    """
+
+    def get(self,rideId):
+        """Gets a rides whose id is specicified
+        
+        Arguments:
+            rideId {String} -- Unique Ride identifier.
+        """
+        check_active_session()
+
+        if not get_ride(rideId):
+            return {
+                "message":"Ride:{} Does not exists".format(rideId)
+            }, 404
+
+        return get_ride(rideId), 200
+
+
+class RideCreation(Resource):
+    """Create a ride Resource
+    
+    Handles /users/rides
+    """
     ride_parser = reqparse.RequestParser()
     ride_parser.add_argument('starting_point', type=string_validator,
                                 required=True, location='json')
@@ -55,7 +89,7 @@ class RidesResource(Resource):
 
         ride_args = self.ride_parser.parse_args()
 
-        ride = create_ride(starting_point=ride_args['starting_point'],
+        ride_id = create_ride(starting_point=ride_args['starting_point'],
                     destination=ride_args['destination'],
                     depart_time=ride_args['depart_time'],
                     eta=ride_args['eta'],
@@ -65,41 +99,15 @@ class RidesResource(Resource):
         
         return {
             "message":"New ride offer was created",
-            "view_ride":"/api/v1/rides/{}".format(ride[0])
+            "view_ride":"/api/v1/rides/{}".format(ride_id)
         }, 201
 
 
-    def get(self):
-        """Get all available rides
-        """
-        check_active_session()
+class RideUpdate(Resource):
+    """Handles ride update endpoint
 
-        rides_generator(20)
-        return get_rides(), 200
+    PUT /users/rides/<rideId>"""
 
-
-class RideResource(Resource):
-    """Handles the ride resources
-    
-    endpoint: /api/v1/rides/<rideId>
-    """
-
-    def get(self,rideId):
-        """Gets a rides whose id is specicified
-        
-        Arguments:
-            rideId {String} -- Unique Ride identifier.
-        """
-        check_active_session()
-
-        if not abort_ride_not_found(rideId):
-            return {
-                "message":"Ride:{} Does not exists".format(rideId)
-            }, 404
-
-        return get_ride(rideId), 200
-
-    
     update_parser = reqparse.RequestParser()
     update_parser.add_argument('starting_point', type=string_validator,
                                 required=True, location='json')
@@ -127,32 +135,33 @@ class RideResource(Resource):
         """
         check_active_session()
 
-        if not abort_ride_not_found(rideId):
+        if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
 
         ride = get_ride(rideId)
 
-        if ride['driver']==session['userID']:
+        if ride['driver'] == session['userID']:
             update_args = self.update_parser.parse_args()
-            update_ride(rideId, 
-                        starting_point=update_args['starting_point'],
-                        destination=update_args['destination'],
-                        depart_time=update_args['depart_time'],
-                        eta=update_args['eta'],
-                        vehicle=update_args['vehicle'],
-                        seats=update_args['seats'])
+            updated_ride = update_ride(rideId, 
+                                starting_point=update_args['starting_point'],
+                                destination=update_args['destination'],
+                                depart_time=update_args['depart_time'],
+                                eta=update_args['eta'],
+                                vehicle=update_args['vehicle'],
+                                seats=update_args['seats'])
             return {
-                "message":"Ride details were update"
+                "message":"Ride details were update",
+                "ride": updated_ride
             },200
             
         return {
             "message":"Your do not own the ride"
-        }, 401
-        
+        }, 401 
 
-class RideRequestsResource(Resource):
+
+class RideRequest(Resource):
     """Handles the Ride Requests resources
 
     endpoint: /api/v1/rides/<rideId>/requests
@@ -171,18 +180,19 @@ class RideRequestsResource(Resource):
 
         req_args = self.req_parser.parse_args()
 
-        if not abort_ride_not_found(rideId):
+        if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
 
+        
         abort_ride_request_found(rideId, session['userID'])
 
-        req = make_request(session['userID'], req_args['destination'], rideId)
+        req_id = make_request(rideId, session['userID'], req_args['destination'])
 
         return{
             "message": "You have requested to join the ride",
-            "view_request": '/api/v1/rides/{}/requests/{}'.format(rideId,req[0])
+            "view_request": '/api/v1/users/rides/{}/requests/{}'.format(rideId, req_id)
         }, 201
 
     def delete(self, rideId):
@@ -193,16 +203,22 @@ class RideRequestsResource(Resource):
         """
         check_active_session()
 
-        if not abort_ride_not_found(rideId):
+        if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
 
-        response = retract_request(session['userID'], rideId)
+        response = retract_request(rideId, session['userID'])
 
         return{
             "message": response
-        }, 204
+        }, 200
+
+    
+class RideRequests(Resource):
+    """Get all requests on a ride
+    endpoint GET /users/rides/<rideId>/requests'
+    """
 
     def get(self, rideId):
         """Fetch all requests on a ride
@@ -212,7 +228,7 @@ class RideRequestsResource(Resource):
         """
         check_active_session()
 
-        if not abort_ride_not_found(rideId):
+        if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
@@ -226,7 +242,7 @@ class RideRequestsResource(Resource):
         }, 401
 
 
-class RequestActionResource(Resource):
+class RequestAction(Resource):
     """Handles Request Action:accept or reject
     
     endpoint /api/v1/rides/<rideId>/requests/<requestId>
@@ -240,7 +256,8 @@ class RequestActionResource(Resource):
         """
         check_active_session()
 
-        if not abort_ride_not_found(rideId):
+        if not get_ride(rideId):
+            
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
@@ -252,7 +269,8 @@ class RequestActionResource(Resource):
             }, 401
         
 
-        if not abort_request_not_found(requestId):
+        if abort_request_not_found(requestId):
+            
             return {
                 "message": "Request to the ride Does not exist",
                 "requests_link":'/api/v1/rides/{}/requests'.format(rideId)
@@ -266,9 +284,10 @@ class RequestActionResource(Resource):
             return {
                 "message": "Ride request has already been '{}'".format(action_arg['action'])
             }, 409
+        elif 'accepted' in action_arg['action']:
+            abort_accepts_equal_seats(rideId)
 
         update_request_status(action_arg['action'], requestId) 
-        
         message = "Ride Request has been '{}'".format(get_request(requestId)['status'])
         return {
             "message":message
@@ -279,7 +298,7 @@ class RequestActionResource(Resource):
 
         check_active_session()
 
-        if not abort_ride_not_found(rideId):
+        if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
