@@ -1,6 +1,6 @@
 """Defines ride Resources"""
 from flask import session
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, abort
 
 from app.validators import string_validator, date_validator, action_validator
 
@@ -16,10 +16,9 @@ def check_active_session():
     """Check if there is an active user sssion
     """
     if 'userID' not in session:
-        return {
-            "message":"You must be logged in to Create new ride",
-            "login_link": "/api/v1/auth/login"
-        }, 401
+        msg = "You must be logged in to Create new ride"
+        link = "/api/v1/auth/login"
+        abort(401, message=msg, login_link=link)   
 
 
 class RidesResource(Resource):
