@@ -24,5 +24,6 @@ CREATE TABLE requests(
     id serial PRIMARY KEY,
     ride_id int NOT NULL,
     user_id uuid NOT NULL,
-    destination varchar(256) NOT NULL
+    destination varchar(256) NOT NULL,
+    status varchar(20
 );
