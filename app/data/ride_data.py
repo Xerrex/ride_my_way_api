@@ -4,83 +4,148 @@ from datetime import datetime, timedelta
 from flask_restful import abort
 
 from app.models import Ride, RideRequest
+from app.db import get_db, close_db
 
-RIDES = {}
-
-REQUESTS = {}
 
 
 def create_ride(**kwargs):
     """Create a new ride
     """
+    ride = Ride(**kwargs)
 
-    ride = Ride(starting_point=kwargs['starting_point'],
-            destination=kwargs['destination'],
-            depart_time=kwargs['depart_time'],
-            eta=kwargs['eta'],
-            vehicle=kwargs['vehicle'],
-            seats=kwargs['seats'],
-            driver=kwargs['driver'])
+    ride_id = ride.save()
     
-    ride_id = "ride{}".format(len(RIDES)+1)
-
-    RIDES[ride_id] = ride.__dict__
-
-    return [ride_id, ride.__dict__]
+    return ride_id
 
 
 def update_ride(ride_id, **kwargs):
     """update a ride"""
-    ride = RIDES[ride_id]
-    ride['starting_point'] = kwargs['starting_point']
-    ride['destination'] = kwargs['destination']
-    ride['depart_time'] = kwargs['depart_time']
-    ride['eta'] = kwargs['eta']
-    ride['vehicle'] = kwargs['vehicle']
-    ride['seats'] = kwargs['seats']
+    query = """UPDATE rides
+                SET starting_point=%s,
+                destination=%s,
+                depart_time=%s,
+                eta=%s,
+                vehicle=%s,
+                seats=%s
+                WHERE id=%s
+                RETURNING starting_point,
+                destination,
+                depart_time,
+                eta,
+                seats,
+                vehicle"""
+    data = (
+        kwargs['starting_point'],
+        kwargs['destination'],
+        kwargs['depart_time'],
+        kwargs['eta'],
+        kwargs['vehicle'],
+        kwargs['seats'],
+        ride_id
+    ) 
 
-    return [ride_id, ride]
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(query, data)
+        row = cursor.fetchone()
+        db.commit()
+        cursor.close()
+        db.close()
+        
+    return {
+        "starting_point": row[0],
+        "destination": row[1],
+        "depart_rime": row[2],
+        "eta": row[3],
+        "seats": row[4],
+        "vehicle": row[5]
+    }
 
 
 def get_rides():
     """Get all avalaible ride offers
     """
-    return RIDES
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute("SELECT * FROM rides")
+        rows = cursor.fetchall()
+        cursor.close()
+        db.close()
+
+    rides = {}   
+    for row in rows:
+        ride = {
+            "starting_point":row[1],
+            "destination":row[2],
+            "depart_time":row[3],
+            "eta":row[4],
+            "vehicle":row[5],
+            "seats": row[6]
+        }
+        rides[row[0]] = ride
+            
+
+    return rides
 
 
 def get_ride(rideId):
     """Get a ride with the Id:rideId
     """
-    return RIDES[rideId]
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        query = "SELECT * FROM rides WHERE id=%s"
+        cursor.execute(query, (rideId,))
+        row = cursor.fetchone()
+        cursor.close()
+        db.close()
+
+    if row:
+        ride = {
+                "starting_point":row[1],
+                "destination":row[2],
+                "depart_time":row[3],
+                "eta":row[4],
+                "seats":row[5],
+                "vehicle": row[6],
+                "driver": row[7]
+            }    
+        return ride
+    return
 
 
-def make_request(user, destination, ride):
-    """Make a request to Join a ride
+def make_request(ride, user, destination):
+    """Make a: request to Join a ride
     
-    Arguments:
-        user {String} -- Unique User Identifier
+    Arguments
+        ride {Integer} -- Unique Ride Identifier
+        user {Uuid} -- Unique User Identifier
         destination {String} -- Town the User is headed to.
-        ride {String} -- Unique Ride Identifier
     """
-    req = RideRequest(user, destination, ride)
-
-    req_id = "req{}".format(len(REQUESTS)+1)
-    REQUESTS[req_id] = req.__dict__
+    ride_request = RideRequest(ride, user, destination)
+    req_id = ride_request.save()
     
-    return [req_id, req.__dict__]
+    return req_id
 
 
-def retract_request(user, ride):
+def retract_request(ride, user):
     """Retracts user request to join a ride
     
     Arguments:
-        user {String} -- Unique User Identifier
-        ride {String} -- Unique Ride Identifier
+        ride {Integer} -- Unique Ride Identifier
+        user {Uuid} -- Unique User Identifier
     """
-    for k,v in REQUESTS.items():
-        if v['user']==user and v['ride']==ride:
-            del REQUESTS[k]
-            return "You have retracted request to join ride"
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        query = "DELETE FROM requests WHERE ride_id=%s AND user_id=%s"
+        cursor.execute(query, (ride, user))
+        db.commit()
+        cursor.close()
+        db.close()
+        return "You have retracted request to join ride" 
 
 
 def get_ride_requests(ride_id):	
@@ -89,10 +154,23 @@ def get_ride_requests(ride_id):
     Arguments:
         ride_id {String} -- Unique ride Indentifier
     """
+    close_db()
+    db = get_db()
+    query = "SELECT * FROM requests WHERE ride_id=%s"
+    with db.cursor() as cursor:
+        cursor.execute(query,(ride_id,))
+        rows = cursor.fetchall()
+        cursor.close()
+        db.close() 
+    
     ride_reqs = {}
-    for k, v in REQUESTS.items():
-        if v['ride'] == ride_id:
-            ride_reqs[k] = v
+    for row in rows:
+        req = {
+            "user": row[2],
+            "destination": row[3],
+            "status": row[4]
+        }
+        ride_reqs[row[1]] = req
     return ride_reqs        
 
 
@@ -102,7 +180,22 @@ def get_request(reqId):
     Arguments:
         reqId {String} -- Unique request identifier
     """
-    return REQUESTS[reqId]
+    query = "SELECT * FROM requests WHERE id=%s"
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(query, (reqId,))
+        row = cursor.fetchone()
+        cursor.close()
+        db.close()
+    req = {
+        "user": row[2],
+        "destination":row[3],
+        "status": row[4]
+    }    
+
+    return req
+
 
 def update_request_status(status, requestID):
     """Update ride request status
@@ -111,43 +204,21 @@ def update_request_status(status, requestID):
         status {String} -- should be 'accepted' or 'rejected'
         requestID {String} -- Unique request identifier
     """
-    REQUESTS[requestID]['status'] = status
+    query = "UPDATE requests SET req_status=%s WHERE id=%s"
+
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(query,(status,requestID))
+        db.commit()
+        cursor.close()
+        db.close()
+
 
 # #####################################Helpers##################################################
 
 """Defines Ride helper Methods
 """
-
-
-def rides_generator(number):
-    """Generate rides
-    
-    Arguments:
-        number {Integer} -- Number of rides you want to create
-    """
-    
-    for x in range(1,number+1):
-        current_date = datetime.now()
-        depart_time = current_date + timedelta(days=x)
-        depart_time = depart_time.strftime("%d-%m-%Y %H:%M")
-
-        eta = current_date + timedelta(days=x+1)
-        eta = eta.strftime("%d-%m-%Y %H:%M")
-
-        create_ride(starting_point="town{}-meetingplace{}".format(x,x),
-                    destination="town{}".format(x+1),
-                    depart_time=depart_time,
-                    eta=eta,
-                    vehicle="KCH {}{}7b".format(x,x+3),
-                    seats=5,
-                    driver="user{}".format(x))
-
-
-def abort_ride_not_found(ride):
-    
-    if ride not in RIDES.keys():
-        return None
-    return "Ride exists"
 
 
 def abort_ride_request_found(ride, user):
@@ -157,11 +228,19 @@ def abort_ride_request_found(ride, user):
         user {String} -- Unique User Identifier
         ride {String} -- Unique Ride Identifier
     """
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        query = "SELECT * FROM requests WHERE ride_id=%s AND user_id=%s"
+        cursor.execute(query, (ride, user))
+        row = cursor.fetchone()
+        cursor.close()
+        db.close()
 
-    for v in REQUESTS.values():
-        if v['ride']==ride and v['user']==user:
-            msg="You have already made a request to join ride"
-            abort(409, message=msg)
+    if row:
+        msg="You have already made a request to join ride"
+        abort(409, message=msg)   
+
 
 def abort_request_not_found(reqId):
     """Abort if Ride not found
@@ -169,7 +248,37 @@ def abort_request_not_found(reqId):
     Arguments:
         reqId {String} -- Unique ride identifier
     """
-    if reqId not in REQUESTS.keys():
-        return None
-    return "request exists"
+    query = "SELECT * FROM requests WHERE id={}".format(reqId)
+    close_db()
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(query)
+        req = cursor.fetchone()
+        cursor.close()
+        db.close()
+    if not req:
+        return "yes do abort"
+    return     
 
+
+def abort_accepts_equal_seats(ride_id): 
+    """Abort if the No. of accepts match seats
+    
+    Arguments:
+        ride_id {Integer} -- Unique ride Indentfier
+    """
+    query = "SELECT * FROM requests WHERE ride_id=%s AND req_status=accepted"
+
+    close_db()
+    db = get_db()
+    with db.cursor as cursor:
+        cursor.execute(query, (ride_id,))
+        passengers = cursor.rowcount
+        cursor.close()
+        db.close()
+    
+    if get_ride(ride_id)['seats'] == passengers:
+        msg = "Maximum accepts have been reached"
+        abort(403,message=msg)
+    
+        
