@@ -2,7 +2,7 @@
 from uuid import uuid4
 from werkzeug.security import generate_password_hash
 
-from .db import get_db, commit_db, close_db
+from .db import get_db, close_db
 
 class User:
     """Defines the User Data Model"""
@@ -16,6 +16,7 @@ class User:
     def save(self):
         """Saves a New user to the database"""
         
+        close_db()
         db = get_db()
         with db.cursor() as cursor:
             query = "INSERT INTO users VALUES (%s, %s, %s, %s)"
@@ -42,6 +43,7 @@ class Ride:
     
     def save(self):
         
+        close_db()
         db = get_db()
         with db.cursor() as cursor:
             fields = "(starting_point, destination, depart_time, \
@@ -63,17 +65,35 @@ class RideRequest:
     """Defines a Ride_request
     """
 
-    def __init__(self, user, destination, ride):
+    def __init__(self, ride, user, destination, ):
         """Create a new Ride_Request Instance
         
         Arguments:
+            ride {String} -- Unique Ride Identifier
             user {String} -- Unique User Identifier
             destination {String} -- Town the User is headed to.
-            ride {String} -- Unique Ride Identifier
         """
+
         self.user = user
         self.destination = destination
         self.ride = ride
         self.status = "" # toggle: acccepted/rejected
+    
+    def save(self):
+        """saves a newly created ride request
+        """
+        fields = "(ride_id, user_id, destination, req_status)"
+        query = "INSERT INTO requests " + fields + " VALUES (%s, %s, %s, %s) RETURNING id"
+        data = (self.ride, self.user, self.destination, self.status)
+
+        close_db()
+        db = get_db()
+        with db.cursor() as cursor:
+            cursor.execute(query, data)
+            req_id = cursor.fetchone()[0]
+            db.commit()
+            db.close()
+
+            return req_id
         
     
