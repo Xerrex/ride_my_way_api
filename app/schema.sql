@@ -25,5 +25,5 @@ CREATE TABLE requests(
     ride_id int NOT NULL,
     user_id uuid NOT NULL,
     destination varchar(256) NOT NULL,
-    status varchar(20
+    req_status varchar(20)
 );
