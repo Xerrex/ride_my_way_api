@@ -36,6 +36,7 @@
   * [Virtual environment & activation](#create-virtual-environment-&-Activate)
   * [Install Dependancies](#install-dependancies)
   * [Enviroment variables](#enviroment-variables)
+  * [Intialize schema](#initalize-schema)
   * [Run the app](#run-the-app)
   * [Run tests](#run-tests)
 
@@ -72,7 +73,7 @@
     
 
 * #### Creates a ride offer.
-    `POST /api/v1/rides`: 
+    `POST /api/v1/users/rides`: 
     ```
     content_type="application/json"
 
@@ -94,7 +95,7 @@
     `GET /api/v1/rides/<rideId>` 
 
 * #### Update a ride
-    `PUT /api/v1/rides/<rideId>`
+    `PUT /api/v1/users/rides/<rideId>`
     ```
     content_type="application/json"
 
@@ -138,7 +139,7 @@
     content_type="application/json"
 
     {
-        "action": "Accepted"
+        "action": "accepted"
     }
     ```  
 
@@ -167,7 +168,7 @@
     (venv)$ touch .env
     ```
     * **Add the following lines to .env file**
-       * replace [] your actual value
+        * replace [] your actual value
     ```
     source venv/bin/activate
     export export FLASK_APP="run.py"
@@ -185,11 +186,15 @@
       * export the SECRET_KEY - Creates secret key
       * export FLASK_ENV - enables the development environment
 
-5. #### **Run the app**
+5. #### **Intialize schema**
    ```
-    (venv)$ flask run
+   (venv)$ flask db init
+   ``` 
+6. #### **Run the app**
    ```
-6. #### **Run Tests**
-  ```
-  (venv)$ pytest
-  ```
+   (venv)$ flask run
+   ```
+7. #### **Run Tests**
+   ```
+   (venv)$ pytest
+   ```
