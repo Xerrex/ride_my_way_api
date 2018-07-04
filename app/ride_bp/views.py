@@ -8,8 +8,7 @@ from app.data.ride_data import create_ride, get_rides,\
     get_ride, make_request, abort_ride_request_found, \
     retract_request, get_ride_requests, \
     abort_request_not_found, get_request, \
-    update_request_status, abort_accepts_equal_seats, \
-    update_ride
+    update_request_status, update_ride
 
 
 def check_active_session():
@@ -284,8 +283,6 @@ class RequestAction(Resource):
             return {
                 "message": "Ride request has already been '{}'".format(action_arg['action'])
             }, 409
-        elif 'accepted' in action_arg['action']:
-            abort_accepts_equal_seats(rideId)
 
         update_request_status(action_arg['action'], requestId) 
         message = "Ride Request has been '{}'".format(get_request(requestId)['status'])

@@ -53,7 +53,7 @@ class TestValidors(TestCase):
                 length_validator, value, 'password', 5)
     
     def test_date_validator(self):
-        """Test the date validator"""
+        """Test Date validator"""
 
         currentdate = datetime.now() + timedelta(days=1)
         value = "{}".format(currentdate.strftime("%d-%m-%Y %H:%M"))
@@ -69,7 +69,7 @@ class TestValidors(TestCase):
 
 
     def test_action_validator(self):
-        """Test the action validator"""
+        """Test Action validator"""
         value = "accepted"
         self.assertEqual(action_validator(value, "action"), "accepted")
 
