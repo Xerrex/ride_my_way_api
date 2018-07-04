@@ -2,13 +2,24 @@ language: python
 python:
   - "3.6.4"
 
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database ridemyway_test;' -U postgres
+
 # command to install dependencies
 install:
   - pip install -r requirements.txt
   - pip install nose
 
 # command to run tests
-script: nosetests --with-coverage
+script:
+  - export DATABASE_TEST="ridemyway_test"
+  - export DATABASE_HOST="127.0.0.1"
+  - export DATABASE_USER="postgres"
+  - export DATABASE_PASS="" 
+  - nosetests --with-coverage
 
 after_success:
   - coveralls
