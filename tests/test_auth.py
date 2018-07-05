@@ -97,6 +97,7 @@ class AuthCase(TestBase):
         data = json.loads(response.get_data(as_text=True))
 
         self.assertIn(self.test_user['name'], data['message'])
+        self.assertTrue(data["access_token"])
 
     def test_duplicate_user_registration(self):
         """Test user cannot register twice

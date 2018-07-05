@@ -1,11 +1,14 @@
 """Defines the Authentication Resources"""
 from flask import session
 from flask_restful import Resource, reqparse
+from flask_jwt_extended import create_access_token
 
 from app.validators import string_validator, email_validator, length_validator
 
 from app.data.user_data import create_user, abort_if_user_found, \
 get_user_by_email, verify_password
+
+
 
 class RegisterResource(Resource):
     """Handles the User Registration 
@@ -70,7 +73,8 @@ class LoginResource(Resource):
                 session['userID'] = user[0]
 
                 return{
-                    "message":"Welcome back '{}'.".format(user[1])
+                    "message":"Welcome back '{}'.".format(user[1]),
+                    "access_token":create_access_token(identity=user[0])
                 }, 200
 
             return {

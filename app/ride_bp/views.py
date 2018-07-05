@@ -1,6 +1,7 @@
 """Defines ride Resources"""
 from flask import session
 from flask_restful import Resource, reqparse, abort
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.validators import string_validator, date_validator, action_validator
 
@@ -14,8 +15,8 @@ from app.data.ride_data import create_ride, get_rides,\
 def check_active_session():
     """Check if there is an active user sssion
     """
-    if 'userID' not in session:
-        msg = "You must be logged in to Create new ride"
+    if not get_jwt_identity():
+        msg = "You must have an access token",
         link = "/api/v1/auth/login"
         abort(401, message=msg, login_link=link)   
 
@@ -29,7 +30,6 @@ class RidesResource(Resource):
     def get(self):
         """Get all available rides
         """
-        check_active_session()
         return get_rides(), 200
 
 
@@ -38,15 +38,13 @@ class RideResource(Resource):
     
     endpoint: /api/v1/rides/<rideId>
     """
-
+    @jwt_required
     def get(self,rideId):
         """Gets a rides whose id is specicified
         
         Arguments:
             rideId {String} -- Unique Ride identifier.
         """
-        check_active_session()
-
         if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
@@ -79,12 +77,10 @@ class RideCreation(Resource):
     ride_parser.add_argument('vehicle', type=string_validator,
                                 required=True, location='json')
 
-
+    @jwt_required
     def post(self):
         """Creates a new ride
         """
-
-        check_active_session()
 
         ride_args = self.ride_parser.parse_args()
 
@@ -94,7 +90,7 @@ class RideCreation(Resource):
                     eta=ride_args['eta'],
                     vehicle=ride_args['vehicle'],
                     seats=ride_args['seats'],
-                    driver=session['userID'])
+                    driver=get_jwt_identity())
         
         return {
             "message":"New ride offer was created",
@@ -125,14 +121,14 @@ class RideUpdate(Resource):
     
     update_parser.add_argument('vehicle', type=string_validator,
                                 required=True, location='json')
-
+    
+    @jwt_required
     def put(self, rideId):
         """update Ride details
         
         Arguments:
             rideId {String} -- Unique Ride identifier.
         """
-        check_active_session()
 
         if not get_ride(rideId):
             return {
@@ -141,7 +137,7 @@ class RideUpdate(Resource):
 
         ride = get_ride(rideId)
 
-        if ride['driver'] == session['userID']:
+        if ride['driver'] in get_jwt_identity():
             update_args = self.update_parser.parse_args()
             updated_ride = update_ride(rideId, 
                                 starting_point=update_args['starting_point'],
@@ -168,14 +164,13 @@ class RideRequest(Resource):
     req_parser = reqparse.RequestParser()
     req_parser.add_argument('destination', type=string_validator,
                             required=True, location='json')
-
+    @jwt_required
     def post(self, rideId):
         """Makes a request to join a ride
         
         Arguments:
             rideId {String} -- Unique Identifier of a ride
         """
-        check_active_session()
 
         req_args = self.req_parser.parse_args()
 
@@ -185,7 +180,7 @@ class RideRequest(Resource):
             }, 404
 
         
-        abort_ride_request_found(rideId, session['userID'])
+        abort_ride_request_found(rideId, get_jwt_identity())
 
         req_id = make_request(rideId, session['userID'], req_args['destination'])
 
@@ -194,20 +189,20 @@ class RideRequest(Resource):
             "view_request": '/api/v1/users/rides/{}/requests/{}'.format(rideId, req_id)
         }, 201
 
+    @jwt_required
     def delete(self, rideId):
         """Retracts a Request to join a ride
         
         Arguments:
             rideId {String} -- Unique Indentifier of a ride
         """
-        check_active_session()
 
         if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
 
-        response = retract_request(rideId, session['userID'])
+        response = retract_request(rideId, get_jwt_identity())
 
         return{
             "message": response
@@ -218,14 +213,13 @@ class RideRequests(Resource):
     """Get all requests on a ride
     endpoint GET /users/rides/<rideId>/requests'
     """
-
+    @jwt_required
     def get(self, rideId):
         """Fetch all requests on a ride
         
         Arguments:
             rideId {String} -- Unique Ride Identifier
         """
-        check_active_session()
 
         if not get_ride(rideId):
             return {
@@ -233,7 +227,7 @@ class RideRequests(Resource):
             }, 404
 
         ride = get_ride(rideId)
-        if ride['driver'] == session['userID']:
+        if ride['driver'] == get_jwt_identity():
             # get ride requests
             return get_ride_requests(rideId), 200
         return {
@@ -249,11 +243,10 @@ class RequestAction(Resource):
     action_parser = reqparse.RequestParser()
     action_parser.add_argument('action', type=action_validator, 
                                 location='json', required=True)
-
+    @jwt_required
     def put(self, rideId, requestId):
         """Toggles request status: rejected / accepted
         """
-        check_active_session()
 
         if not get_ride(rideId):
             
@@ -262,7 +255,7 @@ class RequestAction(Resource):
             }, 404
 
         ride = get_ride(rideId)
-        if ride['driver'] not in session['userID']:
+        if ride['driver'] not in get_jwt_identity():
             return {
                 "message": "Your not authorized to view these requests"
             }, 401
@@ -290,6 +283,7 @@ class RequestAction(Resource):
             "message":message
         }, 200
 
+    @jwt_required
     def get(self, rideId, requestId):
         """Get a request"""
 
@@ -301,7 +295,7 @@ class RequestAction(Resource):
             }, 404
 
         ride = get_ride(rideId)
-        if ride['driver'] not in session['userID']:
+        if ride['driver'] not in get_jwt_identity():
             return {
                 "message": "Your not authorized to view these requests"
             }, 401
