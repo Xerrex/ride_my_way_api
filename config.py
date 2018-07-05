@@ -5,6 +5,7 @@ class Config(object):
     """
     CSRF_ENABLED = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'I just heard the beat and wrote a few lines'
+    JWT_SECRET_KEY = SECRET_KEY
 
     DATABASE = os.environ.get('DATABASE')
     DATABASE_HOST = os.environ.get('DATABASE_HOST')
