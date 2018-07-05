@@ -260,25 +260,3 @@ def abort_request_not_found(reqId):
         return "yes do abort"
     return     
 
-
-def abort_accepts_equal_seats(ride_id): 
-    """Abort if the No. of accepts match seats
-    
-    Arguments:
-        ride_id {Integer} -- Unique ride Indentfier
-    """
-    query = "SELECT * FROM requests WHERE ride_id=%s AND req_status=accepted"
-
-    close_db()
-    db = get_db()
-    with db.cursor as cursor:
-        cursor.execute(query, (ride_id,))
-        passengers = cursor.rowcount
-        cursor.close()
-        db.close()
-    
-    if get_ride(ride_id)['seats'] == passengers:
-        msg = "Maximum accepts have been reached"
-        abort(403,message=msg)
-    
-        

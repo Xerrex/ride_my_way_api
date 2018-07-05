@@ -3,7 +3,6 @@ from unittest import TestCase
 class TestBase(TestCase):
     """Adds Http Status code testing methods
     """
-
     
     @staticmethod
     def assert200(response):
