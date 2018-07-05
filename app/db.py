@@ -8,7 +8,7 @@ from flask.cli import with_appcontext
 def  get_db():
     """Gets the db for request.
 
-    returns a Database connect
+    returns a Database connection
     """
     if 'db' not in g:
         g.db = connect(
