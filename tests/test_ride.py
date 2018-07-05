@@ -57,10 +57,17 @@ class RideCase(TestBase):
                             content_type='application/json')
         
         # login user
-        self.client.post('/api/v1/auth/login', 
+        response = self.client.post('/api/v1/auth/login', 
                             data=json.dumps(self.rider_login), 
                             content_type='application/json')
-    
+        token = json.loads(response.get_data(as_text=True))['access_token']                    
+        self.my_headers = {
+             'Authorization':'Bearer '+token,
+             "Accept": 'application/json',
+             "Content-Type": 'application/json',  
+        } 
+             
+
     def tearDown(self):
         with self.app.test_request_context():
             close_db()
@@ -84,7 +91,7 @@ class RideCase(TestBase):
         self.test_ride["seats"] = seats
         test_ride = self.test_ride
         response = self.client.post('/api/v1/users/rides', data=json.dumps(test_ride), 
-                                    content_type='application/json')
+                                     headers=self.my_headers)
         
         return response
 
@@ -103,7 +110,7 @@ class RideCase(TestBase):
         Assert that a valid GET request to /api/v1/rides
         returns all available rides
         """
-        response = self.client.get('api/v1/rides', content_type='application/json')
+        response = self.client.get('api/v1/rides', headers=self.my_headers)
         
         self.assert200(response)
     
@@ -119,7 +126,7 @@ class RideCase(TestBase):
         self.assert201(response)
 
         data = json.loads(response.get_data(as_text=True))     
-        response = self.client.get(data['view_ride'], content_type='application/json')
+        response = self.client.get(data['view_ride'], headers=self.my_headers)
         data = json.loads(response.get_data(as_text=True))
 
         self.assertEqual(self.test_ride['starting_point'], data['starting_point'])
@@ -149,10 +156,10 @@ class RideCase(TestBase):
         ride_link = "/api/v1/users/rides/"+ride_id
 
         response = self.client.put(ride_link, data=json.dumps(ride_update),
-                                    content_type='application/json')
+                                    headers=self.my_headers)
         self.assert200(response)
         
-        response = self.client.get(data['view_ride'], content_type='application/json')
+        response = self.client.get(data['view_ride'], headers=self.my_headers)
 
         updated_data = json.loads(response.get_data(as_text=True))
 
@@ -164,7 +171,7 @@ class RideCase(TestBase):
        Assert that a GET request to /api/v1/rides/<rideId>
        with a non existent rideId fails with a 404 error.
        """
-       response = self.client.get('/api/v1/rides/100', content_type='application/json')
+       response = self.client.get('/api/v1/rides/100', headers=self.my_headers)
 
        self.assert404(response)
 
@@ -186,7 +193,7 @@ class RideCase(TestBase):
 
         response = self.client.post('%s/requests' %data['view_ride'], 
                                     data=json.dumps(ride_request), 
-                                    content_type='application/json')
+                                    headers=self.my_headers)
         
         self.assert201(response)
 
@@ -208,12 +215,12 @@ class RideCase(TestBase):
         # make request
         response = self.client.post('%s/requests' %data['view_ride'], 
                                     data=json.dumps(ride_request), 
-                                    content_type='application/json')
+                                    headers=self.my_headers)
         self.assert201(response)
 
         # retract request
         response = self.client.delete('%s/requests' %data['view_ride'], 
-                                        content_type='application/json')
+                                        headers=self.my_headers)
         self.assert200(response)
         message = json.loads(response.get_data(as_text=True))['message']
         self.assertEqual(message, "You have retracted request to join ride")
@@ -236,7 +243,7 @@ class RideCase(TestBase):
         }
         response = self.client.post('%s/requests' %data['view_ride'], 
                                     data=json.dumps(ride_request), 
-                                    content_type='application/json')
+                                    headers=self.my_headers)
         self.assert201(response)
 
          # "/api/v1/rides/rideId"
@@ -244,7 +251,7 @@ class RideCase(TestBase):
         link = "/api/v1/users/rides/"+ride_id+"/requests"
 
         # view requests 
-        response = self.client.get(link, content_type='application/json')
+        response = self.client.get(link, headers=self.my_headers)
         
         self.assert200(response)
 
@@ -252,12 +259,20 @@ class RideCase(TestBase):
         self.client.post('/api/v1/auth/logout', content_type='application/json')
 
         self.client.post('/api/v1/auth/register', data=json.dumps(self.ride_pass), 
-                            content_type='application/json')
+                            headers=self.my_headers)
+        
+        
+        response = self.client.post('/api/v1/auth/login', data=json.dumps(self.pass_login), 
+                            headers=self.my_headers)
+        token = json.loads(response.get_data(as_text=True))['access_token']                    
+        my_headers = {
+             'Authorization':'Bearer '+token,
+             "Accept": 'application/json',
+             "Content-Type": 'application/json',  
+        }                      
 
-        self.client.post('/api/v1/auth/login', data=json.dumps(self.pass_login), 
-                            content_type='application/json')
-
-        response = self.client.get(link, content_type='application/json')                    
+        response = self.client.get(link, headers=my_headers)
+        print(response.status_code)                    
         self.assert401(response)
 
     def test_accept_ride_in_request(self):
@@ -280,13 +295,13 @@ class RideCase(TestBase):
 
         response = self.client.post('%s/requests' %ride_link, 
                                     data=json.dumps(ride_request), 
-                                    content_type='application/json')
+                                    headers=self.my_headers)
         
         request_link = json.loads(response.get_data(as_text=True))['view_request']
 
         # accept request
         response = self.client.put(request_link, data=json.dumps({'action':'accepted'}), 
-                                    content_type='application/json')
+                                    headers=self.my_headers)
 
         self.assert200(response)
         message = json.loads(response.get_data(as_text=True))['message']
@@ -311,13 +326,13 @@ class RideCase(TestBase):
 
         response = self.client.post('%s/requests' %ride_link, 
                                     data=json.dumps(ride_request), 
-                                    content_type='application/json')
+                                    headers=self.my_headers)
         
         request_link = json.loads(response.get_data(as_text=True))['view_request']
 
         # Reject request
         response = self.client.put(request_link, data=json.dumps({'action':"rejected"}),
-                        content_type='application/json')
+                        headers=self.my_headers)
 
         message = json.loads(response.get_data(as_text=True))['message']
 
