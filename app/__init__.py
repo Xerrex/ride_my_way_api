@@ -16,4 +16,9 @@ def create_app(env_config="config"):
     from .ride_bp import ride_BP as Ride_Blueprint
     app.register_blueprint(Ride_Blueprint)
 
+    @app.route("/")
+    @app.route("/api/v1")
+    def home():
+        return "Welcome to Ride MY WAY API"
+
     return app
