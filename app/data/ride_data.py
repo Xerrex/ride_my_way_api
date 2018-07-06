@@ -260,3 +260,27 @@ def abort_request_not_found(reqId):
         return "yes do abort"
     return     
 
+
+def abort_active_ride(depart_time, user):
+    """Abort if User has an uncompleted ride 
+    
+    Arguments:
+        depart_time {Datetime} -- depart time of a ride.
+        user {Uuid} -- Unique identifier of person creating ride.
+    """
+
+    query = "SELECT * FROM rides WHERE eta<=%s AND driver=%s"
+    close_db()
+    db =get_db()
+    with db.cursor() as cursor:
+        cursor.execute(query,(depart_time, user))
+        ride = cursor.fetchone()
+        cursor.close()
+        db.close()
+    
+    if ride:
+        eta = ride[4]
+        err = f"You have an uncompleted ride that before-{eta}"
+        msg = f"Create a ride after- {eta}"
+        abort(409, error=err, message=msg)
+

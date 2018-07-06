@@ -1,5 +1,4 @@
 """Defines ride Resources"""
-from flask import session
 from flask_restful import Resource, reqparse, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -9,10 +8,10 @@ from app.data.ride_data import create_ride, get_rides,\
     get_ride, make_request, abort_ride_request_found, \
     retract_request, get_ride_requests, \
     abort_request_not_found, get_request, \
-    update_request_status, update_ride
+    update_request_status, update_ride, abort_active_ride
 
 
-def check_active_session():
+def check_token():
     """Check if there is an active user sssion
     """
     if not get_jwt_identity():
@@ -84,6 +83,8 @@ class RideCreation(Resource):
 
         ride_args = self.ride_parser.parse_args()
 
+        abort_active_ride(ride_args['eta'], get_jwt_identity())
+        
         ride_id = create_ride(starting_point=ride_args['starting_point'],
                     destination=ride_args['destination'],
                     depart_time=ride_args['depart_time'],
@@ -145,7 +146,8 @@ class RideUpdate(Resource):
                                 depart_time=update_args['depart_time'],
                                 eta=update_args['eta'],
                                 vehicle=update_args['vehicle'],
-                                seats=update_args['seats'])
+                                seats=update_args['seats']
+                                    )
             return {
                 "message":"Ride details were update",
                 "ride": updated_ride
@@ -179,10 +181,16 @@ class RideRequest(Resource):
                 "message":"Ride:{} Does not exists".format(rideId)
             }, 404
 
+        if get_ride(rideId)["driver"] == get_jwt_identity():
+        
+            return{
+                "message":"You cannot make a request to your own ride"
+            }, 400
         
         abort_ride_request_found(rideId, get_jwt_identity())
 
-        req_id = make_request(rideId, session['userID'], req_args['destination'])
+       
+        req_id = make_request(rideId, get_jwt_identity(), req_args['destination'])
 
         return{
             "message": "You have requested to join the ride",
@@ -287,8 +295,6 @@ class RequestAction(Resource):
     def get(self, rideId, requestId):
         """Get a request"""
 
-        check_active_session()
-
         if not get_ride(rideId):
             return {
                 "message":"Ride:{} Does not exists".format(rideId)
@@ -297,10 +303,10 @@ class RequestAction(Resource):
         ride = get_ride(rideId)
         if ride['driver'] not in get_jwt_identity():
             return {
-                "message": "Your not authorized to view these requests"
+                "message": "Your not authorized to view these request"
             }, 401
         
-        if not abort_request_not_found(requestId):
+        if abort_request_not_found(requestId):
             return {
                 "message": "Request to the ride Does not exist",
                 "requests_link":'/api/v1/rides/{}/requests'.format(rideId)

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 class Config(object):
     """Parent configuration class for enviroments.
@@ -6,6 +7,7 @@ class Config(object):
     CSRF_ENABLED = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'I just heard the beat and wrote a few lines'
     JWT_SECRET_KEY = SECRET_KEY
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=60)
 
     DATABASE = os.environ.get('DATABASE')
     DATABASE_HOST = os.environ.get('DATABASE_HOST')
