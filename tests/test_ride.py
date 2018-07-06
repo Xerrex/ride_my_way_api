@@ -60,9 +60,25 @@ class RideCase(TestBase):
         response = self.client.post('/api/v1/auth/login', 
                             data=json.dumps(self.rider_login), 
                             content_type='application/json')
-        token = json.loads(response.get_data(as_text=True))['access_token']                    
+        token_driver = json.loads(response.get_data(as_text=True))['access_token']                    
         self.my_headers = {
-             'Authorization':'Bearer '+token,
+             'Authorization':'Bearer '+token_driver,
+             "Accept": 'application/json',
+             "Content-Type": 'application/json',  
+        } 
+
+        # new User
+        self.client.post('/api/v1/auth/logout', content_type='application/json')
+
+        self.client.post('/api/v1/auth/register', data=json.dumps(self.ride_pass), 
+                            headers=self.my_headers)
+        
+        
+        response = self.client.post('/api/v1/auth/login', data=json.dumps(self.pass_login), 
+                            headers=self.my_headers)
+        token_pass = json.loads(response.get_data(as_text=True))['access_token']                    
+        self.pass_headers = {
+             'Authorization':'Bearer '+token_pass,
              "Accept": 'application/json',
              "Content-Type": 'application/json',  
         } 
@@ -99,11 +115,51 @@ class RideCase(TestBase):
         """Test user can create a ride offer
 
         Assert that a valid POST request to /api/v1/users/rides
-        Creates a new ride.    
+        Creates a new ride and fails if they have an active ride.    
         """
         response = self.create_ride(4)
         self.assert201(response)
-    
+
+    def test_creating_duplicate_ride(self):
+        """Test user cannot create a duplicate ride
+        
+        Assert that a valid POST request to /api/v1/users/rides
+        to create a ride with a depart_time before ride by 
+        same user has not completed fails.
+        """
+
+        depart_time = datetime.now() + timedelta(days=1)
+        eta = depart_time + timedelta(days=1)
+
+
+        test_ride = {
+            "starting_point": "Nairobi-Kencom",
+            "destination": "Taita-wunda",
+            "depart_time": "{}".format(depart_time.strftime("%d-%m-%Y %H:%M")),
+            "eta": "{}".format(eta.strftime("%d-%m-%Y %H:%M")),
+            "seats": 4,
+            "vehicle": "KCH 001"
+        }
+
+
+        test_ride2 = {
+            "starting_point": "Nairobi-Kencom",
+            "destination": "Taita-wunda",
+            "depart_time": "{}".format(test_ride["depart_time"]),
+            "eta": "{}".format(eta.strftime("%d-%m-%Y %H:%M")),
+            "seats": 4,
+            "vehicle": "KCH 001"
+        }
+
+        response = self.client.post('/api/v1/users/rides', data=json.dumps(test_ride), 
+                                     headers=self.my_headers)
+        self.assert201(response)
+
+        response = self.client.post('/api/v1/users/rides', data=json.dumps(test_ride2), 
+                                     headers=self.my_headers)                             
+
+        self.assert409(response)
+
     def test_get_available_rides(self):
         """Test user can view all available rides
 
@@ -193,7 +249,7 @@ class RideCase(TestBase):
 
         response = self.client.post('%s/requests' %data['view_ride'], 
                                     data=json.dumps(ride_request), 
-                                    headers=self.my_headers)
+                                    headers=self.pass_headers)
         
         self.assert201(response)
 
@@ -215,7 +271,7 @@ class RideCase(TestBase):
         # make request
         response = self.client.post('%s/requests' %data['view_ride'], 
                                     data=json.dumps(ride_request), 
-                                    headers=self.my_headers)
+                                    headers=self.pass_headers)
         self.assert201(response)
 
         # retract request
@@ -244,7 +300,7 @@ class RideCase(TestBase):
         response = self.client.post('%s/requests' %data['view_ride'], 
                                     data=json.dumps(ride_request), 
                                     headers=self.my_headers)
-        self.assert201(response)
+        self.assert400(response)
 
          # "/api/v1/rides/rideId"
         ride_id = data['view_ride'].split('/')[4]
@@ -254,24 +310,9 @@ class RideCase(TestBase):
         response = self.client.get(link, headers=self.my_headers)
         
         self.assert200(response)
+                      
 
-        # new User
-        self.client.post('/api/v1/auth/logout', content_type='application/json')
-
-        self.client.post('/api/v1/auth/register', data=json.dumps(self.ride_pass), 
-                            headers=self.my_headers)
-        
-        
-        response = self.client.post('/api/v1/auth/login', data=json.dumps(self.pass_login), 
-                            headers=self.my_headers)
-        token = json.loads(response.get_data(as_text=True))['access_token']                    
-        my_headers = {
-             'Authorization':'Bearer '+token,
-             "Accept": 'application/json',
-             "Content-Type": 'application/json',  
-        }                      
-
-        response = self.client.get(link, headers=my_headers)
+        response = self.client.get(link, headers=self.pass_headers)
         print(response.status_code)                    
         self.assert401(response)
 
@@ -288,6 +329,7 @@ class RideCase(TestBase):
         
         ride_link = json.loads(response.get_data(as_text=True))['view_ride']
 
+        
         # make ride in request
         ride_request={
             "destination": "Voi"
@@ -295,7 +337,7 @@ class RideCase(TestBase):
 
         response = self.client.post('%s/requests' %ride_link, 
                                     data=json.dumps(ride_request), 
-                                    headers=self.my_headers)
+                                    headers=self.pass_headers)
         
         request_link = json.loads(response.get_data(as_text=True))['view_request']
 
@@ -326,7 +368,7 @@ class RideCase(TestBase):
 
         response = self.client.post('%s/requests' %ride_link, 
                                     data=json.dumps(ride_request), 
-                                    headers=self.my_headers)
+                                    headers=self.pass_headers)
         
         request_link = json.loads(response.get_data(as_text=True))['view_request']
 
