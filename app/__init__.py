@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_jwt_extended import JWTManager
 from config import app_configs
 
@@ -19,8 +19,7 @@ def create_app(env_config="config"):
     app.register_blueprint(Ride_Blueprint)
 
     @app.route("/")
-    @app.route("/api/v1")
     def home():
-        return "Welcome to Ride MY WAY API"
+        return render_template('home.html')
 
     return app
