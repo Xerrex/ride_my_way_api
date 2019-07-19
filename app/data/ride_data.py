@@ -1,7 +1,7 @@
 """Define Ride Data container and Data fetching methods
 """
 from datetime import datetime, timedelta
-from flask_restful import abort
+from flask_restplus import abort
 
 from app.models import Ride, RideRequest
 from app.db import get_db, close_db

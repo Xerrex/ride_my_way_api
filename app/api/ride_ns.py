@@ -1,5 +1,5 @@
 """Defines ride Resources"""
-from flask_restful import Resource, reqparse, abort
+from flask_restplus import Namespace, Resource, reqparse, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.validators import string_validator, date_validator, action_validator
@@ -9,6 +9,9 @@ from app.data.ride_data import create_ride, get_rides,\
     retract_request, get_ride_requests, \
     abort_request_not_found, get_request, \
     update_request_status, update_ride, abort_active_ride
+
+api = Namespace("Ride", description="Ride operations")
+
 
 
 def check_token():
@@ -20,23 +23,37 @@ def check_token():
         abort(401, message=msg, login_link=link)   
 
 
+@api.route("rides", endpoint="rides")
 class RidesResource(Resource):
     """Handles Rides Resource
     
     endpoint GET /rides
     """
-
+    
+    @api.doc('get_all_rides', 
+            responses={200: 'Get all rides',
+    })
     def get(self):
         """Get all available rides
         """
         return get_rides(), 200
 
 
+@api.route("rides/<string:rideId>", endpoint="view")
 class RideResource(Resource):
     """Handles the ride resources
     
     endpoint: /api/v1/rides/<rideId>
     """
+    @api.doc("view_ride", 
+        response={
+            404: "Ride does not exist",
+            200: "Ride was Found"
+        },
+        params={'rideId': 'Unique Ride identifier'},
+        security="bearer"
+    )
+    @api.header("Authorization", "JWT", required=True)
     @jwt_required
     def get(self,rideId):
         """Gets a rides whose id is specicified
@@ -52,6 +69,7 @@ class RideResource(Resource):
         return get_ride(rideId), 200
 
 
+@api.route("users/rides", endpoint="create")
 class RideCreation(Resource):
     """Create a ride Resource
     
@@ -76,6 +94,13 @@ class RideCreation(Resource):
     ride_parser.add_argument('vehicle', type=string_validator,
                                 required=True, location='json')
 
+    @api.doc("create_ride", 
+        parser=ride_parser, 
+        response={
+            201: "New ride offer was Created"
+        },
+        security="bearer"
+    )
     @jwt_required
     def post(self):
         """Creates a new ride
@@ -99,6 +124,7 @@ class RideCreation(Resource):
         }, 201
 
 
+@api.route("users/rides/<string:rideId>", endpoint="update")
 class RideUpdate(Resource):
     """Handles ride update endpoint
 
@@ -123,6 +149,15 @@ class RideUpdate(Resource):
     update_parser.add_argument('vehicle', type=string_validator,
                                 required=True, location='json')
     
+    @api.doc("update_ride", parser=update_parser, 
+        response={
+            404: "Ride to update Not found",
+            200: "Ride Update was a sucess",
+            401: "User Not allowed to update the ride"
+        },
+        params={"rideId": "Unique Ride identifier"},
+        security="bearer"
+    )
     @jwt_required
     def put(self, rideId):
         """update Ride details
@@ -158,6 +193,7 @@ class RideUpdate(Resource):
         }, 401 
 
 
+@api.route("rides/<string:rideId>/requests", endpoint="request")
 class RideRequest(Resource):
     """Handles the Ride Requests resources
 
@@ -166,6 +202,16 @@ class RideRequest(Resource):
     req_parser = reqparse.RequestParser()
     req_parser.add_argument('destination', type=string_validator,
                             required=True, location='json')
+    
+    @api.doc("request_ride", parser=req_parser, 
+        response={
+            404: "Ride was not found",
+            400: "Not allowed to request on ride",
+            201: "Request on ride was successful"
+        },
+        params={"rideId": "Unique Identifier of a ride"},
+        security="bearer"
+    )
     @jwt_required
     def post(self, rideId):
         """Makes a request to join a ride
@@ -197,6 +243,15 @@ class RideRequest(Resource):
             "view_request": '/api/v1/users/rides/{}/requests/{}'.format(rideId, req_id)
         }, 201
 
+    
+    @api.doc('retract_request',
+        response={
+            404: 'Ride does not exist',
+            200: 'Success, Request to ride was retracted'
+        },
+        params={'rideId': 'Unique Indentifier of a ride'},
+        security="bearer"
+    )
     @jwt_required
     def delete(self, rideId):
         """Retracts a Request to join a ride
@@ -216,11 +271,23 @@ class RideRequest(Resource):
             "message": response
         }, 200
 
-    
+
+@api.route("users/rides/<string:rideId>/requests", 
+            endpoint="requests")
 class RideRequests(Resource):
     """Get all requests on a ride
     endpoint GET /users/rides/<rideId>/requests'
     """
+
+    @api.doc("ride_requests", 
+        params={"rideId": "Unique Ride Identifier"},
+        response={
+            404: "Ride not found",
+            200: "Success requests on a ride retrieved",
+            401: "Your not authorized to view requests"
+        },
+        security="bearer"
+    )
     @jwt_required
     def get(self, rideId):
         """Fetch all requests on a ride
@@ -243,6 +310,8 @@ class RideRequests(Resource):
         }, 401
 
 
+@api.route('rides/<string:rideId>requests/<string:requestid>', 
+            endpoint="requests_action")
 class RequestAction(Resource):
     """Handles Request Action:accept or reject
     
@@ -251,6 +320,20 @@ class RequestAction(Resource):
     action_parser = reqparse.RequestParser()
     action_parser.add_argument('action', type=action_validator, 
                                 location='json', required=True)
+    
+    @api.doc("request_action", parser=action_parser,
+        params={
+            "rideId": "Unique Ride Identifier",
+            "requestId": "Unique Request Identifier"
+        },
+        response={
+            404: "Ride or Request Not found",
+            401: "Forbidden to view requests on a ride",
+            200: "Success Action on request",
+            409: "Duplicate Action on request"
+        },
+        security="bearer"
+    )
     @jwt_required
     def put(self, rideId, requestId):
         """Toggles request status: rejected / accepted
@@ -291,6 +374,18 @@ class RequestAction(Resource):
             "message":message
         }, 200
 
+    @api.doc("get_request", 
+        params={
+            "rideId": "Unique Ride Identifier",
+            "requestId": "Unique Request Identifier"
+        }, 
+        response={
+            404: "Ride or Request not found",
+            401: "Not authorized to view requests",
+            200: "Success"
+        },
+        security="bearer"
+    )
     @jwt_required
     def get(self, rideId, requestId):
         """Get a request"""

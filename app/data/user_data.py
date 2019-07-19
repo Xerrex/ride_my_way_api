@@ -1,7 +1,7 @@
 """Defines user Data Container & fetching methods 
 """
 from werkzeug.security import check_password_hash
-from flask_restful import abort
+from flask_restplus import abort
 from app.models import User
 from app.db import get_db
 
