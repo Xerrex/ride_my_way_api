@@ -4,7 +4,7 @@ import json
 
 from app import create_app
 from app.db import initialize, get_db, close_db
-from basetest import TestBase
+from tests.basetest import TestBase
 
 
 class AuthCase(TestBase):
