@@ -239,7 +239,7 @@ def abort_ride_request_found(ride, user):
 
     if row:
         msg="You have already made a request to join ride"
-        abort(409, message=msg)   
+        abort(409, msg)   
 
 
 def abort_request_not_found(reqId):
@@ -282,5 +282,5 @@ def abort_active_ride(depart_time, user):
         eta = ride[4]
         err = f"You have an uncompleted ride that before-{eta}"
         msg = f"Create a ride after- {eta}"
-        abort(409, error=err, message=msg)
+        abort(409, msg, error=err)
 

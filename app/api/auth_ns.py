@@ -1,6 +1,6 @@
 """Defines the Authentication Resources"""
 from flask import session
-from flask_restplus import Namespace, Resource, reqparse
+from flask_restplus import Namespace, Resource, reqparse, fields
 from flask_jwt_extended import create_access_token
 
 from app.validators import string_validator, email_validator, length_validator
@@ -10,6 +10,11 @@ get_user_by_email, verify_password
 
 api = Namespace('Authentication', description="Authentication Operations")
 
+new_user= api.model("New_user",{
+    "name": fields.String(required=True, description='name of the new user'),
+    "email": fields.String(required=True, description='email of the new user'),
+    "password": fields.String(required=True, description='password for the new user')
+})
 
 @api.route('/register', endpoint="register")
 class RegisterResource(Resource):
@@ -28,7 +33,7 @@ class RegisterResource(Resource):
                                     required=True, location='json')   
 
     @api.doc('create_user',parser=user_parser, 
-                responses={201: 'user account created successfully'})
+                 responses={201: 'user account created successfully'})
     def post(self):
         """Creates a new user
         """

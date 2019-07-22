@@ -1,5 +1,5 @@
 """Defines ride Resources"""
-from flask_restplus import Namespace, Resource, reqparse, abort
+from flask_restplus import Namespace, Resource, reqparse, abort, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.validators import string_validator, date_validator, action_validator
@@ -13,6 +13,20 @@ from app.data.ride_data import create_ride, get_rides,\
 api = Namespace("Ride", description="Ride operations")
 
 
+ride = api.model('Ride',{
+    "starting_point": fields.String(description='Where the ride starts'),
+    "destination": fields.String(description='Where the ride is going'),
+    "depart_time":fields.String(description='Time when the ride starts'),
+    "eta":fields.String(description='Time when the ride is expected to arrive'),
+    "seats": fields.Integer(description='The Number of available spaces/passengers'),
+    "vehicle": fields.String(description='Plates for the vehicle'),
+    "driver": fields.String(description='The driver of the ride')
+})
+
+ride_list = api.model("ride_list", {
+    'id': fields.String(required=True, description='The ID of a ride'),
+    'ride': fields.Nested(ride, description='The Ride')
+})
 
 def check_token():
     """Check if there is an active user sssion
@@ -20,7 +34,7 @@ def check_token():
     if not get_jwt_identity():
         msg = "You must have an access token",
         link = "/api/v1/auth/login"
-        abort(401, message=msg, login_link=link)   
+        abort(401, msg, login_link=link)   
 
 
 @api.route("rides", endpoint="rides")
@@ -30,16 +44,15 @@ class RidesResource(Resource):
     endpoint GET /rides
     """
     
-    @api.doc('get_all_rides', 
-            responses={200: 'Get all rides',
-    })
+    @api.doc('get_all_rides', responses={200: 'Success, retrieved rides'})
+    @api.marshal_list_with(ride_list)
     def get(self):
         """Get all available rides
         """
         return get_rides(), 200
 
 
-@api.route("rides/<string:rideId>", endpoint="view")
+@api.route("rides/<rideId>", endpoint="view")
 class RideResource(Resource):
     """Handles the ride resources
     
@@ -54,6 +67,7 @@ class RideResource(Resource):
         security="bearer"
     )
     @api.header("Authorization", "JWT", required=True)
+    @api.marshal_with(ride)
     @jwt_required
     def get(self,rideId):
         """Gets a rides whose id is specicified
@@ -124,7 +138,7 @@ class RideCreation(Resource):
         }, 201
 
 
-@api.route("users/rides/<string:rideId>", endpoint="update")
+@api.route("users/rides/<rideId>", endpoint="update")
 class RideUpdate(Resource):
     """Handles ride update endpoint
 
@@ -193,7 +207,7 @@ class RideUpdate(Resource):
         }, 401 
 
 
-@api.route("rides/<string:rideId>/requests", endpoint="request")
+@api.route("rides/<rideId>/requests", endpoint="request")
 class RideRequest(Resource):
     """Handles the Ride Requests resources
 
@@ -272,7 +286,7 @@ class RideRequest(Resource):
         }, 200
 
 
-@api.route("users/rides/<string:rideId>/requests", 
+@api.route("users/rides/<rideId>/requests", 
             endpoint="requests")
 class RideRequests(Resource):
     """Get all requests on a ride
@@ -310,8 +324,8 @@ class RideRequests(Resource):
         }, 401
 
 
-@api.route('rides/<string:rideId>requests/<string:requestid>', 
-            endpoint="requests_action")
+@api.route('users/rides/<rideId>requests/<requestId>', 
+            endpoint="request_action")
 class RequestAction(Resource):
     """Handles Request Action:accept or reject
     
@@ -369,9 +383,9 @@ class RequestAction(Resource):
             }, 409
 
         update_request_status(action_arg['action'], requestId) 
-        message = "Ride Request has been '{}'".format(get_request(requestId)['status'])
+        msg = "Ride Request has been '{}'".format(get_request(requestId)['status'])
         return {
-            "message":message
+            "message":msg
         }, 200
 
     @api.doc("get_request", 

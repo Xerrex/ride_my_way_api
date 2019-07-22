@@ -15,8 +15,6 @@ def create_app(env_config="config"):
     from .api import api_bp
     app.register_blueprint(api_bp)
 
-    # from .ride_bp import ride_BP as Ride_Blueprint
-    # app.register_blueprint(Ride_Blueprint)
 
     @app.route("/")
     def home():

@@ -66,7 +66,7 @@ def abort_if_user_found(email):
         user = cursor.fetchone()
         
     if user:
-       abort(409, message="User with that email already exists")     
+       abort(409, "User with that email already exists")     
 
         
 
