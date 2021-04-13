@@ -12,6 +12,7 @@ flask = "*"
 flask-jwt-extended = "*"
 flask-restplus = "*"
 psycopg2-binary = "*"
+werkzeug = "==0.16.1"
 
 [requires]
 python_version = "3.8"
