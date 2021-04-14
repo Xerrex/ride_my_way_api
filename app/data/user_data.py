@@ -3,7 +3,7 @@
 from werkzeug.security import check_password_hash
 from flask_restplus import abort
 from app.models import User
-from app.db import get_db
+from app.db import close_db, get_db
 
 
 def create_user(name, email, password):
@@ -23,16 +23,12 @@ def get_user_by_email(email):
     
     Arguments:
         email {String:email}
-    """
-    # for user_id in USERS.keys():
-    #     if USERS[user_id]['email'] == email:
-    #         return [user_id,USERS[user_id]]
-    # return 
+    """ 
     db = get_db()
-    with db.cursor() as cursor:
-        query = "SELECT * FROM users WHERE email=%s"
-        cursor.execute(query, (email,))
-        user = cursor.fetchone()
+    query = "SELECT * FROM users WHERE email=?"
+    user = db.execute(query, (email,)).fetchone()
+    close_db()
+    
     if user:
         return user
     return None 
@@ -55,18 +51,7 @@ def abort_if_user_found(email):
     Arguments:
         email {String:email} -- User email
     """
-    # for user in USERS.values():
-    #     if user['email'] == email:
-    #         abort(409, message="User with that email already exists")
-
-    db = get_db()
-    with db.cursor() as cursor:
-        query = "SELECT * FROM users WHERE email=%s"
-        cursor.execute(query, (email,))
-        user = cursor.fetchone()
         
-    if user:
+    if get_user_by_email(email):
        abort(409, "User with that email already exists")     
-
-        
 
