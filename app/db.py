@@ -38,9 +38,10 @@ def initialize():
 
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))   
-        
+
+
 def seed_data():
-    """Insert data mock data into the database.
+    """Insert test data into the database.
     """
     # insert rides
     query = """INSERT INTO rides(starting_point, 

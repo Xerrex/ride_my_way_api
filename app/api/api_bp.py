@@ -15,3 +15,4 @@ api = Api(api_bp, title="RMI-API",version="1.0",
         )
 
 api.add_namespace(Authentication_Namespace)
+api.add_namespace(Rides_Namespace)
