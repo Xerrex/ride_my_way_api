@@ -16,84 +16,83 @@ class User:
     def save(self):
         """Saves a New user to the database"""
         
-        close_db()
         db = get_db()
-        with db.cursor() as cursor:
-            query = "INSERT INTO users VALUES (%s, %s, %s, %s)"
-            data = (self.id, self.name, self.email, self.password)
-            cursor.execute(query, data)
-            db.commit()
-            db.close()
-            
+        query = "INSERT INTO users (id, name, email, password) VALUES(?,?,?,?)"
+        data = (self.id, self.name, self.email, self.password)
+        db.execute(query, data)
+        db.commit()
+        close_db()
+
 
 class Ride:
     """Define the Ride Model
     """
-    def __init__(self,**kwargs):
+    def __init__(self,driver, **ride_details):
         """Create a Ride Instance
         """
 
-        self.starting_point = kwargs['starting_point']
-        self.destination = kwargs['destination']
-        self.depart_time = kwargs['depart_time']
-        self.eta = kwargs['eta']
-        self.seats = kwargs['seats']
-        self.vehicle = kwargs['vehicle']
-        self.driver = kwargs['driver']
+        self.starting_point = ride_details['starting_point']
+        self.destination = ride_details['destination']
+        self.depart_time = ride_details['depart_time']
+        self.eta = ride_details['eta']
+        self.seats = ride_details['seats']
+        self.vehicle = ride_details['vehicle']
+        self.driver = driver
     
     def save(self):
+        """Saves a new ride to the database"""
         
-        close_db()
         db = get_db()
-        with db.cursor() as cursor:
-            fields = "(starting_point, destination, depart_time, \
-            eta, seats, vehicle, driver)"
-            query = "INSERT INTO rides " + fields + "\
-             VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
-            data = (self.starting_point, self.destination, self.depart_time, 
-                    self.eta, self.seats, self.vehicle, self.driver
-            )
-            cursor.execute(query, data)
-            ride_id = cursor.fetchone()[0]
-            db.commit()
-            db.close()
+        fields = "(starting_point, destination, depart_time, \
+        eta, seats, vehicle, driver)"
+        query = "INSERT INTO rides " + fields + "\
+            VALUES (?, ?, ?, ?, ?, ?, ?)"
+        data = (self.starting_point, self.destination, self.depart_time, 
+                    self.eta, self.seats, self.vehicle, self.driver)
+        
+        cursor = db.cursor()
+        cursor.execute(query, data)
+        db.commit()
+        ride_id = cursor.lastrowid
+        cursor.close()
+        close_db()
 
-            return ride_id
+        return ride_id
 
 
 class RideRequest:
     """Defines a Ride_request
     """
 
-    def __init__(self, ride, user, destination, ):
+    def __init__(self, rideID, passenger, dest):
         """Create a new Ride_Request Instance
         
         Arguments:
-            ride {String} -- Unique Ride Identifier
-            user {String} -- Unique User Identifier
-            destination {String} -- Town the User is headed to.
+            rideID (String) -- Unique Ride Identifier
+            passenger (Uuid) -- Unique User Identifier wishing to join the ride
+            destination (String) -- Town the passenger is headed to.
         """
 
-        self.user = user
-        self.destination = destination
-        self.ride = ride
-        self.status = "" # toggle: acccepted/rejected
+        self.ride = rideID
+        self.passenger = passenger
+        self.destination = dest
+        self.status = "accepted" # TODO make toggle: accepted/rejected
     
     def save(self):
         """saves a newly created ride request
         """
         fields = "(ride_id, user_id, destination, req_status)"
-        query = "INSERT INTO requests " + fields + " VALUES (%s, %s, %s, %s) RETURNING id"
-        data = (self.ride, self.user, self.destination, self.status)
+        query = f"INSERT INTO requests {fields} VALUES (?,?,?,?)"
+        data = (self.ride, self.passenger, self.destination, self.status)
 
-        close_db()
         db = get_db()
-        with db.cursor() as cursor:
-            cursor.execute(query, data)
-            req_id = cursor.fetchone()[0]
-            db.commit()
-            db.close()
+        cursor = db.cursor()
+        cursor.execute(query, data)
+        db.commit()
+        reqID = cursor.lastrowid
+        cursor.close()
+        close_db()
 
-            return req_id
+        return reqID
         
     

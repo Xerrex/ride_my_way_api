@@ -1,7 +1,8 @@
 venv/
-.env
+.env*
 .coverage
 .pytest_cache/
 .vscode/
 *.pyc
 .idea/
+*.db
