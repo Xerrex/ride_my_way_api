@@ -76,7 +76,7 @@ class RideRequest:
         self.ride = rideID
         self.passenger = passenger
         self.destination = dest
-        self.status = "" # toggle: accepted/rejected
+        self.status = "accepted" # TODO make toggle: accepted/rejected
     
     def save(self):
         """saves a newly created ride request

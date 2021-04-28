@@ -1,4 +1,6 @@
 import sqlite3
+from uuid import uuid4
+from datetime import datetime, timedelta
 
 
 import click
@@ -38,18 +40,6 @@ def initialize():
 
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))   
-
-
-def seed_data():
-    """Insert test data into the database.
-    """
-    # insert rides
-    query = """INSERT INTO rides(starting_point, 
-        destination, depart_time, eta, 
-        seats, vehicle,driver) VALUES
-    """
-    # TODO: finish a seed function
-    pass
 
 
 @click.group()

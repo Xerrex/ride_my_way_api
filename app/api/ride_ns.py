@@ -11,7 +11,8 @@ from app.data.ride_data import create_ride, get_rides,\
     get_ride, make_request, abort_ride_request_already_made, \
     retract_request, get_ride_requests, \
     abort_request_not_found, get_request, \
-    update_request_status, update_ride, abort_active_ride
+    update_request_status, update_ride, \
+    abort_active_ride, abort_ride_not_found
 
 ride_ns = Namespace("Ride", description="Ride operations",
                     path="/")
@@ -86,10 +87,10 @@ class RidesResource(Resource):
     
     endpoint: /rides
     """
-    # TODO: Add Security to this endpoint
 
-    @ride_ns.doc('view_all_rides', 
+    @ride_ns.doc('view_all_rides', security="bearer",
                     responses={200: 'Success, retrieved rides'})
+    @jwt_required()
     def get(self):
         """Get all available rides
         """
@@ -295,7 +296,7 @@ class RideRequests(Resource):
 
         if not ride:
             return {
-                "message":f"Ride:{ride} Does not exists"
+                "message":f"Ride:{rideId} Does not exists"
             }, 404
 
         response = retract_request(rideId, get_jwt_identity())
@@ -305,6 +306,7 @@ class RideRequests(Resource):
         }, 200
 
 
+# TODO: enable this endpoint to accept and reject endpoints
 
 # @api.route('users/rides/<rideId>requests/<requestId>', 
 #             endpoint="request_action")
@@ -350,10 +352,6 @@ class RideRequests(Resource):
 
 #         if abort_request_not_found(requestId):
             
-#             return {
-#                 "message": "Request to the ride Does not exist",
-#                 "requests_link":'/api/v1/rides/{}/requests'.format(rideId)
-#             }, 404
         
 #         action_arg = self.action_parser.parse_args()
         
@@ -370,38 +368,4 @@ class RideRequests(Resource):
 #             "message":msg
 #         }, 200
 
-#     @api.doc("get_request", 
-#         params={
-#             "rideId": "Unique Ride Identifier",
-#             "requestId": "Unique Request Identifier"
-#         }, 
-#         response={
-#             404: "Ride or Request not found",
-#             401: "Not authorized to view requests",
-#             200: "Success"
-#         },
-#         security="bearer"
-#     )
-#     @jwt_required
-#     def get(self, rideId, requestId):
-#         """Get a request"""
-
-#         if not get_ride(rideId):
-#             return {
-#                 "message":"Ride:{} Does not exists".format(rideId)
-#             }, 404
-
-#         ride = get_ride(rideId)
-#         if ride['driver'] not in get_jwt_identity():
-#             return {
-#                 "message": "Your not authorized to view these request"
-#             }, 401
-        
-#         if abort_request_not_found(requestId):
-#             return {
-#                 "message": "Request to the ride Does not exist",
-#                 "requests_link":'/api/v1/rides/{}/requests'.format(rideId)
-#             }, 404
-        
-#         return get_request(requestId), 200
 

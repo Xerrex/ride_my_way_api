@@ -148,50 +148,54 @@ def get_ride_requests(rideID):
 
 
 def get_request(reqId):
-    """Fetch a ride 
+    """Fetch a ride request
     
     Arguments:
         reqId {String} -- Unique request identifier
     """
-    query = "SELECT * FROM requests WHERE id=%s"
+    query = "SELECT * FROM requests WHERE id = ?"
+
+    cursor = get_db().cursor()
+    cursor.execute(query, (reqId,))
+    req = cursor.fetchone()
+    cursor.close()
     close_db()
-    db = get_db()
-    with db.cursor() as cursor:
-        cursor.execute(query, (reqId,))
-        row = cursor.fetchone()
-        cursor.close()
-        db.close()
-    req = {
-        "user": row[2],
-        "destination":row[3],
-        "status": row[4]
-    }    
+    print(req)
 
-    return req
+    return 
 
 
-def update_request_status(status, requestID):
+def update_request_status(status, reqID):
     """Update ride request status
     
     Arguments:
         status {String} -- should be 'accepted' or 'rejected'
-        requestID {String} -- Unique request identifier
+        reqID {String} -- Unique request identifier
     """
-    query = "UPDATE requests SET req_status=%s WHERE id=%s"
+    query = "UPDATE requests SET req_status=? WHERE id=?"
 
-    close_db()
     db = get_db()
-    with db.cursor() as cursor:
-        cursor.execute(query,(status,requestID))
-        db.commit()
-        cursor.close()
-        db.close()
+    db.execute(query,(status,reqID))
+    db.commit()
+    close_db()
+    return
 
 
 # #####################################Helpers##################################################
 
 """Defines Ride helper Methods
 """
+def abort_ride_not_found(rideID):
+    """[summary]
+
+    Args:
+        rideID (Integer): Unique identifier of a ride
+    """
+    if not get_ride(rideID):
+
+        msg = f"Ride:{rideID} Does not exists"
+        abort(404, msg)
+
 
 def abort_ride_request_already_made(rideID, passenger):
     """Abort with 409
@@ -217,17 +221,12 @@ def abort_request_not_found(reqId):
     Arguments:
         reqId {String} -- Unique ride identifier
     """
-    query = "SELECT * FROM requests WHERE id={}".format(reqId)
-    close_db()
-    db = get_db()
-    with db.cursor() as cursor:
-        cursor.execute(query)
-        req = cursor.fetchone()
-        cursor.close()
-        db.close()
+    req = get_request(reqId)
+    print(req)
+
     if not req:
-        return "yes do abort"
-    return     
+        msg = "Request to join this ride does not exist"
+        abort(404, msg)
 
 
 def abort_active_ride(depart_time, ride_creator):
@@ -245,7 +244,7 @@ def abort_active_ride(depart_time, ride_creator):
     
     if ride:
         eta = dict(ride)["eta"]
-        err = f"You have an uncompleted ride that before-{eta}"
+        err = f"You have an uncompleted ride that is before-{eta}"
         msg = f"Create a ride after- {eta}"
         abort(409, msg, error=err)
 
