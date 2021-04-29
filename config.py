@@ -3,6 +3,9 @@ from pathlib import Path
 from datetime import timedelta
 
 basedir = Path(__file__).resolve().parent
+database = Path(basedir).joinpath(os.environ.get('DATABASE'))
+database_test = Path(basedir).joinpath(os.environ.get('DATABASE_TEST'))
+
 
 class Config(object):
     """Parent configuration class for enviroments.
@@ -12,10 +15,9 @@ class Config(object):
     JWT_SECRET_KEY = SECRET_KEY
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=60)
 
-    DATABASE = Path(basedir).joinpath(os.environ.get('DATABASE'))
-    # DATABASE_HOST = os.environ.get('DATABASE_HOST')
-    # DATABASE_USER = os.environ.get('DATABASE_USER')
-    # DATABASE_PASS = os.environ.get('DATABASE_PASS')
+    # TODO Move to Docker Postgres
+    SQLALCHEMY_DATABASE_URI = f'sqlite:////{database}'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class Development(Config):
     pass
@@ -25,7 +27,7 @@ class Testing(Config):
     """
 
     TESTING = True
-    DATABASE = os.environ.get('DATABASE_TEST')
+    SQLALCHEMY_DATABASE_URI = f'sqlite:////{database_test}'
 
 
 app_configs = {

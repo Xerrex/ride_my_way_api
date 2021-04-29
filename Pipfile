@@ -13,6 +13,8 @@ flask-jwt-extended = "*"
 flask-restplus = "*"
 psycopg2-binary = "*"
 werkzeug = "==0.16.1"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
 
 [requires]
 python_version = "3.8"

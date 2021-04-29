@@ -1,6 +1,8 @@
 from flask import Flask, render_template
 from flask_jwt_extended import JWTManager
 from config import app_configs
+from .extensions import ext_init_app
+
 
 def create_app(config="dev"):
     app = Flask(__name__, instance_relative_config=True)
@@ -9,8 +11,10 @@ def create_app(config="dev"):
 
     JWTManager(app)
 
-    from .db import init_app
-    init_app(app)
+    # from .db import init_app
+    # init_app(app)
+    
+    ext_init_app(app)
 
     from .api import api_bp as API_Blueprint
     app.register_blueprint(API_Blueprint)
