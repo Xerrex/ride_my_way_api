@@ -6,3 +6,4 @@ venv/
 *.pyc
 .idea/
 *.db
+scrap_yard/

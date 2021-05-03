@@ -31,7 +31,7 @@ class User(db.Model):
         db.session.commit()
     
     def __repr__(self):
-        return f'<User {self.username}'
+        return f'<User {self.username}>'
 
 
 class Ride(db.Model):
@@ -48,16 +48,29 @@ class Ride(db.Model):
     interests = db.relationship('Interest', backref='ride', lazy='dynamic')
 
     def __init__(self, owner, **ride_details):
-        """Create a Ride Instance
-        """
+        """Create a new Ride Instance
 
-        self.start_point = ride_details['starting_point']
-        self.destination = ride_details['destination']
-        self.depart_time = ride_details['depart_time']
+        Args:
+            owner (Integer): Id of user Creating the ride.
+        
+        Keyword Args:
+            * s_point (String): Starting point location of the ride.
+            * dest (String): town the ride finishes at.
+            * d_time (String): The Date and time the rides leaves.
+            * eta (String): Expected time to reach destination.
+            * vplate (String): The Vehicle number of registration.
+            * seats (Integer): Number of passenger space available
+        """
+        
+
+        self.start_point = ride_details['s_point']
+        self.destination = ride_details['dest']
+        self.depart_time = ride_details['d_time']
         self.et_arrival = ride_details['eta']
-        self.vehicle_plate = ride_details['vehicle']
-        self.user_id = owner
+        self.vehicle_plate = ride_details['vplate']
         self.seats_no = ride_details['seats']
+        self.user_id = owner
+        
         
     
     def save(self):
